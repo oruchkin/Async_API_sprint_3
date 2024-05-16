@@ -1,1 +1,47 @@
+# Project data
 .idea
+envs/.env
+envs/.env.etl
+envs/.env.fastapi_movies
+envs/.env.tests
+
+app/.env
+api/tests/functional/.env
+etl/.env
+infra/.env
+
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+env.bak/
+env1/
+env2/
+.env
+
+# IDEs and editors
+.idea/
+.vscode
+*.sublime-project
+*.sublime-workspace
+
+# Logs and databases
+*.log
+*.sqlite3
+db.sqlite3
+
+# Compiled files
+*.pyd
+*.pyo
+*.pyw
+*.pyz
+*.pyzw
+
+# Miscellaneous
+.DS_Store
+Thumbs.db

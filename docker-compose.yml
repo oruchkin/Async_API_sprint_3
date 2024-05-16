@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  prac_db_postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - dbstorage:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+    env_file:
+      - ./envs/.env
+
+
+  prac_db_init:
+    build:
+      context: ./infra/postgres_init
+      dockerfile: Dockerfile_db_init
+    environment:
+      DB_HOST: prac_db_postgres
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: "5432"
+    depends_on:
+      - prac_db_postgres
+    restart: "no"
+    env_file:
+      - ./envs/.env
+
+
+  prac-backend:
+    build:
+      context: .
+      dockerfile: infra/app/Dockerfile
+    environment:
+      DB_HOST: prac_db_postgres
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: "5432"
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+    volumes:
+      - static_value:/opt/app/static_backend/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - prac_db_init
+    env_file:
+      - ./envs/.env
+
+
+  prac-nginx:
+    image: nginx:1.19.2
+    depends_on:
+      - prac-backend
+    restart: always
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - static_value:/static_backend/
+    ports:
+      - "80:80"
+
+
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - esstorage:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    restart: always
+    depends_on:
+      - prac_db_postgres
+
+
+
+  prac-etl:
+    build:
+      context: ./etl
+      dockerfile: Dockerfile
+    environment:
+      - .env
+    depends_on:
+      - prac_db_postgres
+      - elasticsearch
+      - prac-nginx
+    restart: on-failure
+    env_file:
+      - ./envs/.env.etl
+
+
+
+  redis:
+    image: redis
+    restart: always
+    expose:
+      - 6379
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redisstorage:/data
+
+
+  fastapi:
+    build:
+      context: ./api
+    expose:
+      - 8001
+    depends_on:
+      - elasticsearch
+      - redis
+    env_file:
+      - ./envs/.env.fastapi_movies
+    ports:
+      - "8001:8000"
+
+
+#  tests:
+#    build:
+#      context: ./api/tests/functional
+#    depends_on:
+#      - elasticsearch
+#      - redis
+#      - fastapi
+#    env_file:
+#      - ./envs/.env.tests
+#    entrypoint: >
+#      sh -c "ls && pwd && cd /opt
+#      && python3 -m functional.utils.wait_for_es
+#      && python3 -m functional.utils.wait_for_redis
+#      && pytest ./functional/tests"
+
+volumes:
+  dbstorage:
+    name: admin-panel-db
+    external: true
+  static_value:
+    name: admin-panel-static
+    external: true
+  esstorage:
+    name: admin-panel-es
+    external: true
+  redisstorage:
+    name: admin-panel-redis
+    external: true
