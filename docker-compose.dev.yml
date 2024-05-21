@@ -49,8 +49,8 @@ services:
       - static_value:/opt/app/static_backend/
     ports:
       - "8000:8000"
-#    depends_on:
-#      - prac_db_init
+    depends_on:
+      - prac_db_init
     env_file:
       - ./envs/.env
 
@@ -123,20 +123,20 @@ services:
       - "8001:8000"
 
 
-#  tests:
-#    build:
-#      context: ./api/tests/functional
-#    depends_on:
-#      - elasticsearch
-#      - redis
-#      - fastapi
-#    env_file:
-#      - ./envs/.env.tests
-#    entrypoint: >
-#      sh -c "ls && pwd && cd /opt
-#      && python3 -m functional.utils.wait_for_es
-#      && python3 -m functional.utils.wait_for_redis
-#      && pytest ./functional/tests"
+  tests:
+    build:
+      context: ./api/tests/functional
+    depends_on:
+      - elasticsearch
+      - redis
+      - fastapi
+    env_file:
+      - ./envs/.env.tests
+    entrypoint: >
+      sh -c "ls && pwd && cd /opt
+      && python3 -m functional.utils.wait_for_es
+      && python3 -m functional.utils.wait_for_redis
+      && pytest ./functional/tests"
 
   minio:
     image: minio/minio
@@ -165,6 +165,5 @@ volumes:
     external: true
   minio_storage:
     name: admin-panel-s3
-#    external: true
 
 
