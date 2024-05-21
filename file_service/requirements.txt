@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+miniopy-async
+aiofiles
+aiohttp
+loguru
+sqlalchemy
+alembic
+asyncpg
