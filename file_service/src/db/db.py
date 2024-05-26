@@ -2,7 +2,15 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from src.core.settings import settings
 
 
-engine = create_async_engine(settings.POSTGRES_URL,
+user = settings.POSTGRES_USER
+password = settings.POSTGRES_PASSWORD
+host = settings.POSTGRES_HOST
+port = settings.POSTGRES_PORT
+db = settings.POSTGRES_DB
+db_driver = "postgresql+asyncpg"
+
+POSTGRES_URL = f"{db_driver}://{user}:{password}@{host}:{port}/{db}"
+engine = create_async_engine(POSTGRES_URL,
                              echo=settings.POSTGRES_QUERY_LOGGING)
 
 SessionLocal = async_sessionmaker(
