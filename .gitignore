@@ -1,6 +1,6 @@
 # Project data
 .idea
-*/**/.env
+**/.env
 
 # Python
 *.pyc
