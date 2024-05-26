@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile
 from src.db.db import get_db
 from src.services.file_service import FileService
 from src.services.minio_service import MinioStorage
-import shortuuid
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.responses import RedirectResponse
+
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ async def upload_file(file: UploadFile,
     return result
 
 
-@router.get("/download/{short_name}")
+@router.get("/download/")
 async def download_file(short_name: str,
                         bucket: str = "mybucket",
                         db: AsyncSession = Depends(get_db)):
@@ -36,7 +37,7 @@ async def download_file(short_name: str,
     return file_obj
 
 
-@router.delete("/delete/{short_name}",
+@router.delete("/delete/",
                summary="Delete file",
                description="Delete file from S3 storage and database")
 async def delete_file(short_name: str,
@@ -51,7 +52,7 @@ async def delete_file(short_name: str,
     return {"detail": "File successfully deleted"}
 
 
-@router.get("/presigned_url/{bucket}/{short_name}",
+@router.get("/presigned_url/",
             summary="Generate presigned URL",
             description="Generate presigned URL for downloading the file")
 async def generate_presigned_url(bucket: str,
@@ -65,3 +66,19 @@ async def generate_presigned_url(bucket: str,
 
     presigned_url = await file_service.generate_presigned_url(bucket, short_name, expires_in)
     return {"presigned_url": presigned_url}
+
+
+@router.get("/redirect_download/",
+            summary="Redirect to presigned URL",
+            description="Redirect the user to the presigned URL for downloading the file")
+async def redirect_download(short_name: str,
+                            bucket: str = "mybucket",
+                            expires_in: int = 3600,
+                            db: AsyncSession = Depends(get_db)):
+    file_service = FileService(db, MinioStorage())
+
+    if not await file_service.has_permission(short_name):
+        raise HTTPException(status_code=403, detail="Access forbidden")
+
+    presigned_url = await file_service.generate_presigned_url(bucket, short_name, expires_in)
+    return RedirectResponse(url=presigned_url)
