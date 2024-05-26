@@ -26,5 +26,8 @@ RUN python -m pip install -r requirements.txt
 COPY etl/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
+COPY file_service/requirements.txt .
+RUN python -m pip install -r requirements.txt
+
 #create a non root user to access the container
 RUN adduser -u 5678 --disabled-password --gecos "" vscode

@@ -13,6 +13,7 @@ services:
   postgres-dev:
     extends: postgres
     expose: [5432]
+    env_file: [.env.dev]
     profiles: ["admin-dev"]
 
   admin:
@@ -106,8 +107,7 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    env_file:
-      - .env
+    env_file: [.env]
     volumes:
       - minio_storage:/data
     command: server --console-address ":9001" /data
@@ -116,6 +116,7 @@ services:
   minio-dev:
     extends: minio
     expose: [9001]
+    env_file: [.env.dev]
     profiles: ["admin-dev"]
 
   fileapi:
@@ -127,13 +128,14 @@ services:
     depends_on:
       - postgres
       - minio
+    env_file: [.env]
     profiles: ["all", "admin"]
 
   fileapi-dev:
     extends: fileapi
     expose: [8001]
     depends_on: !reset ["postgres-dev", "minio-dev"]
-
+    env_file: [.env.dev]
     profiles: ["admin-dev"]
 
 volumes:

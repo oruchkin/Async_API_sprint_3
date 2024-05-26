@@ -1,6 +1,6 @@
+import uvicorn
 from fastapi import FastAPI
 from src.api.file_endpoints import router as file_router
-import uvicorn
 
 # app = FastAPI()
 
@@ -13,7 +13,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
-app.include_router(file_router, prefix="/files")
+app.include_router(file_router, prefix="/api/v1/files")
 
 
 if __name__ == "__main__":
