@@ -15,5 +15,5 @@ include(
     "components/database.py",
     "components/logging.py",
     "components/static.py",
+    "components/file_storage.py",
 )
-

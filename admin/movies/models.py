@@ -3,6 +3,7 @@ import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from movies.custom_storage import CustomStorage
 
 
 class FilmType(models.TextChoices):
@@ -62,13 +63,11 @@ class Filmwork(TimeStampedMixin, UUIDMixin):
         blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
-    type = models.CharField(
-        _("type"), choices=FilmType.choices, default=FilmType.MOVIE, max_length=255
-    )
+    type = models.CharField(_("type"), choices=FilmType.choices, default=FilmType.MOVIE, max_length=255)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     genres = models.ManyToManyField(Genre, through="GenreFilmwork")
-    file_path = models.FileField(_("file"), blank=True, null=True, upload_to="movies/")
+    file = models.FileField(_("file"), storage=CustomStorage(), null=True)
     certificate = models.CharField(_("certificate"), max_length=512, blank=True)
 
     class Meta:
@@ -76,8 +75,7 @@ class Filmwork(TimeStampedMixin, UUIDMixin):
         verbose_name = _("Filmwork")
         verbose_name_plural = _("Filmworks")
         indexes = [
-            models.Index(fields=['creation_date'],
-                         name='film_work_creation_date_idx'),
+            models.Index(fields=["creation_date"], name="film_work_creation_date_idx"),
         ]
 
     def __str__(self):
@@ -94,8 +92,7 @@ class GenreFilmwork(UUIDMixin):
         verbose_name = _("Genre filmwork")
         verbose_name_plural = _("Genres filmworks")
         indexes = [
-            models.Index(fields=['film_work', 'genre'],
-                         name='genre_film_work_genre_idx'),
+            models.Index(fields=["film_work", "genre"], name="genre_film_work_genre_idx"),
         ]
 
 
@@ -124,10 +121,8 @@ class PersonFilmwork(UUIDMixin):
         verbose_name = _("Person filmwork")
         verbose_name_plural = _("Persons filmworks")
         indexes = [
-            models.Index(fields=['film_work', 'person'],
-                         name='film_work_person_idx'),
+            models.Index(fields=["film_work", "person"], name="film_work_person_idx"),
         ]
-
 
     def __str__(self):
         return self.role

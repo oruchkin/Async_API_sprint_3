@@ -14,14 +14,20 @@ RUN apt-get update \
 && git config --global core.autocrlf true
 
 # Copy python requirements to the docker container and install
+COPY admin/requirements.txt .
+RUN python -m pip install -r requirements.txt 
+
 COPY api/requirements.txt . 
 RUN python -m pip install -r requirements.txt 
 
-COPY api/tests/functional/requirements.txt ./api/tests/functional/
-RUN python -m pip install -r ./api/tests/functional/requirements.txt
+COPY api/tests/functional/requirements.txt .
+RUN python -m pip install -r requirements.txt
 
-COPY etl/requirements.txt ./etl/
-RUN python -m pip install -r ./etl/requirements.txt
+COPY etl/requirements.txt .
+RUN python -m pip install -r requirements.txt
+
+COPY file_service/requirements.txt .
+RUN python -m pip install -r requirements.txt
 
 #create a non root user to access the container
 RUN adduser -u 5678 --disabled-password --gecos "" vscode

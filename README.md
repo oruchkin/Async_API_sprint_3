@@ -7,6 +7,7 @@ docker compose --profile admin up
 ```
 Доступные профили:
 - admin - только то, что необходимо для работы Django
+- admin-dev - база и хранилища файлов с высунутыми наружу портами
 - etl - только etl часть
 - fastapi - только окружение для fastapi
 - all - admin, etl, fastapi, но без тестов
