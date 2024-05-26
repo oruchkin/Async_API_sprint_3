@@ -10,8 +10,6 @@ services:
 #    depends_on:
 #      - db
 #      - minio
-#    networks:
-#      - app-network
 
   db:
     image: postgres:latest
@@ -21,8 +19,6 @@ services:
       POSTGRES_DB: file_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
     ports:
       - 5432:5432
 
@@ -37,8 +33,7 @@ services:
     volumes:
       - minio_storage:/data
     command: server --console-address ":9001" /data
-    networks:
-      - app-network
+
 
 #  nginx:
 #    image: nginx:latest
@@ -48,13 +43,8 @@ services:
 #      - ./nginx.conf:/etc/nginx/nginx.conf
 #    depends_on:
 #      - app
-#    networks:
-#      - app-network
 
 volumes:
   postgres_data:
   minio_storage:
 
-networks:
-  app-network:
-    driver: bridge
