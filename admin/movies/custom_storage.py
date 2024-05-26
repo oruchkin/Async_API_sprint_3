@@ -10,13 +10,15 @@ class CustomStorage(Storage):
     def __init__(self) -> None:
         super().__init__()
         base_url = settings.FILE_STORAGE_URL  # type: ignore
-        self._upload_url = f"{base_url}/api/v1/"
-        self._file_url = f"{base_url}/api/v1/download_stream"
+        self._upload_url = f"{base_url}/api/files/upload"
+        self._file_url = f"{base_url}/api/files/download_stream"
 
     def _save(self, name, content: InMemoryUploadedFile):
-        r = requests.post(self._upload_url, files={"file": (content.name, content, content.content_type)})
+        endpoint = f"{self._upload_url}?bucket={settings.FILE_STORAGE_BUCKET}"  # type: ignore
+        response = requests.post(endpoint, files={"file": (content.name, content, content.content_type)})
         # предполагается, что от сервиса приходит json-объект, содержащий поле 'short_name' с коротким именем файла
-        return r.json().get("short_name")
+        data = response.json()
+        return data.get("short_name")
 
     def url(self, name):
         return f"{self._file_url}/{name}"

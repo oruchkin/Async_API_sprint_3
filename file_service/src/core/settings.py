@@ -10,9 +10,9 @@ class Settings:
     POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
     POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
     POSTGRES_USER = os.getenv("POSTGRES_USER", "user")
-    POSTGRES_DB = os.getenv("POSTGRES_DB", "file_db")
+    POSTGRES_DB = os.getenv("FASTAPI_POSTGRES_DB", "file_db")
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
-    POSTGRES_QUERY_LOGGING = os.getenv("POSTGRES_QUERY_LOGGING", False)
+    POSTGRES_QUERY_LOGGING = os.getenv("FASTAPI_POSTGRES_QUERY_LOGGING", False)
 
 
 settings = Settings()

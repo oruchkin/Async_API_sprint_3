@@ -12,8 +12,7 @@ services:
 
   postgres-dev:
     extends: postgres
-    expose:
-      - 5432
+    expose: [5432]
     profiles: ["admin-dev"]
 
   admin:
@@ -113,6 +112,29 @@ services:
       - minio_storage:/data
     command: server --console-address ":9001" /data
     profiles: ["all", "admin"]
+
+  minio-dev:
+    extends: minio
+    expose: [9001]
+    profiles: ["admin-dev"]
+
+  fileapi:
+    build:
+      context: ./../file_service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
+      - minio
+    profiles: ["all", "admin"]
+
+  fileapi-dev:
+    extends: fileapi
+    expose: [8001]
+    depends_on: !reset ["postgres-dev", "minio-dev"]
+
+    profiles: ["admin-dev"]
 
 volumes:
   dbstorage:
