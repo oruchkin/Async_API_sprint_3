@@ -1,64 +1,35 @@
-version: '3'
-services:
+version: '3.8'
 
-  prac_db_postgres:
+services:
+  postgres:
     image: postgres:13
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - dbstorage:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     restart: always
+    env_file:
+      - .env
 
-
-  prac_db_init:
+  admin:
     build:
-      context: postgres_init
-      dockerfile: Dockerfile_db_init
-    environment:
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: ${DB_PORT}
-    depends_on:
-      - prac_db_postgres
-    restart: no
-
-
-  prac-backend:
-    build:
-      context: ../
-      dockerfile: infra/app/Dockerfile
-
-    environment:
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: ${DB_PORT}
-      SECRET_KEY: ${SECRET_KEY}
-      DEBUG: ${DEBUG}
+      context: ./../admin
     volumes:
       - static_value:/opt/app/static_backend/
     ports:
       - "8000:8000"
-    depends_on:
-      - prac_db_init
+    env_file:
+      - .env
 
 
-  prac-nginx:
+  admin-nginx:
     image: nginx:1.19.2
     depends_on:
-      - prac-backend
+      - admin
     restart: always
-
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./../admin/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./../admin/nginx/nginx.conf:/etc/nginx/nginx.conf
       - static_value:/static_backend/
     ports:
       - "80:80"
@@ -75,21 +46,22 @@ services:
       - "9200:9200"
     restart: always
     depends_on:
-      - prac_db_postgres
+      - postgres
 
 
-
-  prac-etl:
+  etl:
     build:
-      context: ../etl
+      context: ./../etl
       dockerfile: Dockerfile
     environment:
       - .env
     depends_on:
-      - prac_db_postgres
+      - postgres
       - elasticsearch
-      - prac-nginx
     restart: on-failure
+    env_file:
+      - .env
+
 
   redis:
     image: redis
@@ -102,14 +74,46 @@ services:
     volumes:
       - redisstorage:/data
 
+
+  fastapi:
+    build:
+      context: ./api
+    expose:
+      - 8001
+    depends_on:
+      - elasticsearch
+      - redis
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    volumes:
+      - minio_storage:/data
+    command: server --console-address ":9001" /data
+
 volumes:
-  static_value:
-    name: admin-panel-static
   dbstorage:
     name: admin-panel-db
+    external: true
+  static_value:
+    name: admin-panel-static
+    external: true
   esstorage:
     name: admin-panel-es
+    external: true
   redisstorage:
     name: admin-panel-redis
+    external: true
+  minio_storage:
+    name: admin-panel-s3
+#    external: true
 
 
