@@ -1,67 +1,42 @@
-version: '3'
 services:
-
-  prac_db_postgres:
+  postgres:
     image: postgres:13
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - dbstorage:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     restart: always
+    env_file:
+      - .env
+    profiles: ["all", "admin", "etl"]
 
-
-  prac_db_init:
+  admin:
     build:
-      context: postgres_init
-      dockerfile: Dockerfile_db_init
-    environment:
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: ${DB_PORT}
+      context: ./../admin
     depends_on:
-      - prac_db_postgres
-    restart: no
-
-
-  prac-backend:
-    build:
-      context: ../
-      dockerfile: infra/app/Dockerfile
-
-    environment:
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: ${DB_PORT}
-      SECRET_KEY: ${SECRET_KEY}
-      DEBUG: ${DEBUG}
-    volumes:
-      - static_value:/opt/app/static_backend/
+      - postgres
     ports:
       - "8000:8000"
-    depends_on:
-      - prac_db_init
+    environment:
+      - DEBUG:True
+    env_file:
+      - .env
+    profiles: ["all", "admin"]
 
 
-  prac-nginx:
-    image: nginx:1.19.2
+  admin-nginx:
+    build:
+      context: ./../admin
+      dockerfile: nginx/Dockerfile
     depends_on:
-      - prac-backend
+      - admin
     restart: always
-
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - static_value:/static_backend/
+      - ./../admin/nginx/configs/admin.conf:/etc/nginx/conf.d/configs/admin.conf
+      - ./../admin/nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - "80:80"
+    profiles: ["all", "admin"]
 
 
   elasticsearch:
@@ -75,21 +50,24 @@ services:
       - "9200:9200"
     restart: always
     depends_on:
-      - prac_db_postgres
+      - postgres
+    profiles: ["all", "etl", "fastapi"]
 
 
-
-  prac-etl:
+  etl:
     build:
-      context: ../etl
+      context: ./../etl
       dockerfile: Dockerfile
     environment:
       - .env
     depends_on:
-      - prac_db_postgres
+      - postgres
       - elasticsearch
-      - prac-nginx
     restart: on-failure
+    env_file:
+      - .env
+    profiles: ["all", "etl"]
+
 
   redis:
     image: redis
@@ -101,15 +79,47 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - redisstorage:/data
+    profiles: ["all", "fastapi"]
+
+
+  fastapi:
+    build:
+      context: ./../api
+    expose:
+      - 8001
+    depends_on:
+      - elasticsearch
+      - redis
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    profiles: ["all", "fastapi"]
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    volumes:
+      - minio_storage:/data
+    command: server --console-address ":9001" /data
+    profiles: ["all", "admin"]
 
 volumes:
-  static_value:
-    name: admin-panel-static
   dbstorage:
     name: admin-panel-db
+    external: true
   esstorage:
     name: admin-panel-es
+    external: true
   redisstorage:
     name: admin-panel-redis
+    external: true
+  minio_storage:
+    name: admin-panel-s3
+    external: true
 
 

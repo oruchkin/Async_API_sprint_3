@@ -1,14 +1,6 @@
 # Project data
 .idea
-envs/.env
-envs/.env.etl
-envs/.env.fastapi_movies
-envs/.env.tests
-
-app/.env
-api/tests/functional/.env
-etl/.env
-infra/.env
+*/**/.env
 
 # Python
 *.pyc
@@ -22,7 +14,6 @@ env/
 env.bak/
 env1/
 env2/
-.env
 
 # IDEs and editors
 .idea/

@@ -1,3 +1,22 @@
+# Docker compose
+
+## Profiles
+Чтобы не поднимать всю вселенную разом, можно использовать профили, например:
+```
+docker compose --profile admin up
+```
+Доступные профили:
+- admin - только то, что необходимо для работы Django
+- etl - только etl часть
+- fastapi - только окружение для fastapi
+- all - admin, etl, fastapi, но без тестов
+
+
+## External volumes
+В docker-compose используются внешние статические зависимости, чтобы сделать управление данными более надежным. Чтобы инициализировать такую зависимость в docker, нужно выполнить команду:
+```
+docker volume create <volume name> --opt type=none --opt device=<path to volume> --opt o=bind
+```
 
 ![screenshot](readme/make-admin.png) вот так можно удобно создавать админа make admin в терминале
 

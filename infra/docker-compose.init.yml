@@ -3,17 +3,13 @@ version: '3.8'
 services:
   prac_db_postgres:
     image: postgres:13
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - dbstorage:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     restart: always
     env_file:
-      - ./envs/.env
+      - .env
 
 
   prac_db_init:
