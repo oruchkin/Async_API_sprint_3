@@ -1,18 +1,16 @@
 import logging
 
-from elasticsearch import Elasticsearch
-
-from settings import Settings
 from elastic_indexes.genres_index_body import genres_index_body
-from elastic_indexes.persons_index_body import persons_index_body
 from elastic_indexes.movies_index_body import movies_index_body
+from elastic_indexes.persons_index_body import persons_index_body
+from elasticsearch import Elasticsearch
+from settings import Settings
+
 
 def initialize_elastic() -> None:
-    """ Создает индексы в elastic search, если они не существуют. """
+    """Создает индексы в elastic search, если они не существуют."""
     settings = Settings()
-    es_client = Elasticsearch([{'host': settings.elastic_host,
-                                'port': settings.elastic_port,
-                                'scheme': settings.elastic_schema}])
+    es_client = Elasticsearch(settings.elastic_url)
 
     movies_index = settings.elastic_index_name_movies
     genres_index = settings.elastic_index_name_genres
