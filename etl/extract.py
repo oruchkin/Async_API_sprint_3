@@ -28,6 +28,8 @@ def extract_movies_data(pg_conn, state, batch_size) -> Generator[List[Dict[str, 
 
     last_modified_date = state.get_state("last_modified_movies") or settings.initial_date
 
+    # FIXME: Тут мы выбираем всю базу разом. Курсор должен быть Server side (просто удалить DictCursor)
+    # и сам запрос очень сложный, лучше сделать 3-4 отдельных запроса
     with pg_conn.cursor() as cursor:
         query = """
             SELECT fw.id,

@@ -11,10 +11,13 @@ from extract import (
 from init_elastic_search_index import initialize_elastic
 from load import upload_to_elastic
 from settings import Settings
-from state_storage import JsonFileStorage, State
+from state.file_storage import JsonFileStorage
+from state.state import State
 from transform import transform_genre_data, transform_movies_data, transform_person_data
 
 settings = Settings()
+
+# TODO: Use redis storage
 state_storage = JsonFileStorage(settings.state_file_path)
 state = State(state_storage)
 initialize_elastic()
