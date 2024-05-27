@@ -16,6 +16,7 @@ services:
     env_file: [.env.dev]
     profiles: ["admin-dev"]
 
+
   admin:
     build:
       context: ./../admin
@@ -55,9 +56,12 @@ services:
     ports:
       - "9200:9200"
     restart: always
-    depends_on:
-      - postgres
     profiles: ["all", "etl", "fastapi"]
+
+  elasticsearch-clean:
+    extends: elasticsearch
+    volumes: !reset [] # must be created on fly
+    profiles: ["fastapi-test"]
 
 
   etl:
@@ -87,20 +91,44 @@ services:
       - redisstorage:/data
     profiles: ["all", "fastapi"]
 
+  redis-clean:
+    extends: redis
+    volumes: !reset [] # must be created on the fly
+    profiles: ["fastapi-test"]
 
   fastapi:
     build:
       context: ./../api
-    expose:
-      - 8001
-    depends_on:
-      - elasticsearch
-      - redis
-    env_file:
-      - .env
+    expose: [8001]
+    depends_on: [elasticsearch, redis]
+    env_file: [.env]
     ports:
       - "8001:8000"
     profiles: ["all", "fastapi"]
+
+  # By some reason tests work only with 8000 port :(
+  fastapi-test:
+    build:
+      context: ./../api
+    env_file: [.env, .env.test]
+    expose: [8000]
+    depends_on: [elasticsearch-clean, redis-clean]
+    profiles: ["fastapi-test"]
+
+  fastapi-func-test:
+    build:
+      context: ./../api/tests/functional
+    depends_on:
+      - elasticsearch-clean
+      - redis-clean
+      - fastapi-test
+    env_file: [.env, .env.test]
+    entrypoint: >
+      sh -c "ls && pwd && cd /opt
+      && python3 -m functional.utils.wait_for_es
+      && python3 -m functional.utils.wait_for_redis
+      && pytest ./functional/tests"
+    profiles: ["fastapi-test"]
 
   minio:
     image: minio/minio
@@ -137,6 +165,15 @@ services:
     depends_on: !reset ["postgres-dev", "minio-dev"]
     env_file: [.env.dev]
     profiles: ["admin-dev"]
+
+  postgres-init:
+    build:
+      context: ./../postgres_init
+      dockerfile: Dockerfile
+    env_file: [.env]
+    depends_on: [postgres]
+    restart: "no"
+    profiles: ["init"]
 
 volumes:
   dbstorage:
