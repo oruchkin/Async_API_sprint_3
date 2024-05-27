@@ -1,16 +1,16 @@
-FROM python:3.10
+FROM python:3.10-alpine
 
-RUN apt-get update && apt-get install -y postgresql-client
+RUN apk update && apk add postgresql-client
 
-COPY requirements.txt /app/requirements.txt
 WORKDIR /app
 
-
-RUN ls -la /app
-RUN ls -la
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app
+
+RUN ls -la
+
+COPY . .
 RUN chmod +x init_db.sh
 
-ENTRYPOINT ["/app/init_db.sh"]
+ENTRYPOINT ["sh", "/app/init_db.sh"]

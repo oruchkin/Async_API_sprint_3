@@ -1,5 +1,5 @@
 services:
-  postgres-base:
+  postgres-base: &postgres-base
     image: postgres:13
     volumes:
       - dbstorage:/var/lib/postgresql/data
@@ -13,10 +13,10 @@ services:
     profiles: ["all", "admin", "etl"]
 
   postgres-dev:
-    extends: postgres-base
+    <<: *postgres-base
     ports: [5432:5432]
     env_file: [.env.dev]
-    profiles: ["admin-dev", "etl-dev", "api-dev"]
+    profiles: ["admin-dev", "etl-dev", "api-dev", "init"]
 
 
   admin:
@@ -43,7 +43,7 @@ services:
     profiles: ["all", "admin"]
 
 
-  elasticsearch:
+  elasticsearch-base: &elasticsearch-base
     image: elasticsearch:8.6.2
     environment:
       - discovery.type=single-node
@@ -52,16 +52,20 @@ services:
       - esstorage:/usr/share/elasticsearch/data
     expose: [9200]
     restart: always
+    profiles: ["never"]
+
+  elasticsearch:
+    <<: *elasticsearch-base
     profiles: ["all", "etl", "api"]
 
   elasticsearch-dev:
-    extends: elasticsearch
+    <<: *elasticsearch-base
     ports: ["9200:9200"]
     profiles: ["etl-dev", "api-dev"]
 
   elasticsearch-clean:
-    extends: elasticsearch
-    volumes: !reset [] # must be created on fly
+    <<: *elasticsearch-base
+    volumes: [] # must be created on fly
     profiles: ["api-test"]
 
   etl:
@@ -78,7 +82,7 @@ services:
     profiles: ["all", "etl"]
 
   ### Redis containers
-  redis-base:
+  redis-base: &redis-base
     image: redis
     restart: always
     expose: [6379]
@@ -86,13 +90,13 @@ services:
     profiles: ["never"]
   
   redis:
-    extends: redis-base
+    <<: *redis-base
     volumes: [redisstorage:/data]
     ports: [6379:6379]
     profiles: ["all", "api", "api-dev", "etl", "etl-dev"]
 
   redis-clean:
-    extends: redis-base
+    <<: *redis-base
     volumes: [] # must be created on the fly
     profiles: ["api-test"]
 
@@ -147,7 +151,7 @@ services:
     env_file: [.env.dev]
     profiles: ["admin-dev", "api-dev"]
 
-  fileapi-base:
+  fileapi-base: &fileapi-base
     build:
       context: ./../file_service
       dockerfile: Dockerfile
@@ -156,12 +160,12 @@ services:
     profiles: ["never"]
   
   fileapi:
-    extends: fileapi-base
+    <<: *fileapi-base
     depends_on: [postgres, minio]
     profiles: ["all", "admin"]
 
   fileapi-dev:
-    extends: fileapi-base
+    <<: *fileapi-base
     ports: [22738:22738]
     depends_on: [postgres-dev, minio-dev]
     env_file: [.env.dev]
@@ -171,9 +175,10 @@ services:
     build:
       context: ./../postgres_init
       dockerfile: Dockerfile
-    env_file: [.env]
-    depends_on: [postgres]
+    env_file: [.env, .env.dev]
+    depends_on: [postgres-dev]
     restart: "no"
+    stdin_open: true
     profiles: ["init"]
 
 volumes:

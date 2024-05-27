@@ -31,9 +31,7 @@ def pg_connect(dsl: dict):
 
 def get_mogrified_values(pg_cursor, data_obj: dict):
     """Получение списка mogrified значений для вставки в PostgreSQL."""
-    mogrified_values = pg_cursor.mogrify(
-        ",".join(["%s"] * len(data_obj)), tuple(data_obj.values())
-    )
+    mogrified_values = pg_cursor.mogrify(",".join(["%s"] * len(data_obj)), tuple(data_obj.values()))
     return mogrified_values
 
 
@@ -42,17 +40,12 @@ def save_data_to_postgres(pg_conn, table_name: str, data: list, columns: list):
     with pg_conn.cursor() as pg_cursor:
         # Формирование строки значений сразу в нужном формате
         args_str = ",".join(
-            pg_cursor.mogrify(
-                f"({','.join(['%s'] * len(row))})", tuple(row.values())
-            ).decode()
-            for row in data
+            pg_cursor.mogrify(f"({','.join(['%s'] * len(row))})", tuple(row.values())).decode() for row in data
         )
 
         # Формирование и выполнение SQL-запроса
         pg_cursor.execute(
-            f"INSERT INTO content.{table_name} ({', '.join(columns)}) "
-            f"VALUES {args_str} "
-            f"ON CONFLICT DO NOTHING;"
+            f"INSERT INTO content.{table_name} ({', '.join(columns)}) " f"VALUES {args_str} " f"ON CONFLICT DO NOTHING;"
         )
     pg_conn.commit()
 
@@ -67,6 +60,7 @@ def map_columns(row, column_mapping):
 
 
 def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
+    # from SQLite to Postgres column
     mapping = {"created_at": "created", "updated_at": "modified"}
     tables = [
         {
@@ -74,20 +68,13 @@ def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
             "dataclass": FilmWork,
             "column_mapping": mapping,
         },
-        {
-            "name": "genre",
-            "dataclass": Genre,
-            "column_mapping": mapping
-        },
+        {"name": "genre", "dataclass": Genre, "column_mapping": mapping},
         {
             "name": "genre_film_work",
             "dataclass": GenreFilmWork,
             "column_mapping": mapping,
         },
-        {
-            "name": "person",
-            "dataclass": Person,
-            "column_mapping": mapping},
+        {"name": "person", "dataclass": Person, "column_mapping": mapping},
         {
             "name": "person_film_work",
             "dataclass": PersonFilmWork,
@@ -105,6 +92,16 @@ def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
                 break
 
             data = [map_columns(dict(row), table["column_mapping"]) for row in rows]
+            if table["name"] == "film_work":
+                for row in data:
+                    row["creation_date"] = row["created"]
+                    row["certificate"] = ""
+                    row["description"] = ""
+                    row["rating"] = 0
+            if table["name"] == "genre":
+                for row in data:
+                    row["description"] = ""
+
             columns = list(data[0].keys()) if data else []
             save_data_to_postgres(pg_conn, table["name"], data, columns)
 
@@ -112,20 +109,12 @@ def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
 def main():
     sqlite_db_path = "db.sqlite"
     dsl = {
-        "dbname": os.environ.get("DB_NAME"),
-        "user": os.environ.get("DB_USER"),
-        "password": os.environ.get("DB_PASSWORD"),
-        "host": os.environ.get("DB_HOST"),
-        "port": os.environ.get("DB_PORT"),
+        "dbname": os.environ.get("POSTGRES_DB"),
+        "user": os.environ.get("POSTGRES_USER"),
+        "password": os.environ.get("POSTGRES_PASSWORD"),
+        "host": os.environ.get("POSTGRES_HOST"),
+        "port": os.environ.get("POSTGRES_PORT"),
     }
-
-    # dsl = {
-    #     "dbname": 'movies_database',
-    #     "user": 'app',
-    #     "password": '123qwe',
-    #     "host": 'prac_db_postgres',
-    #     "port": '5432',
-    # }
 
     with sqlite_connect(sqlite_db_path) as sqlite_conn, pg_connect(dsl) as pg_conn:
         load_from_sqlite(sqlite_conn, pg_conn)
