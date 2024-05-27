@@ -35,8 +35,7 @@ class FilmService(ServiceABC):
         query = {"match_all": {}}
 
         if genre:
-            if genre_record := await self._get_from_elastic("genres", genre):
-                query = {"bool": {"filter": [{"term": {"genres": genre_record["name"]}}]}}
+            query = {"nested": {"path": "genres", "query": {"bool": {"must": [{"match": {"genres.id": genre}}]}}}}
 
         films_data = await self._query_from_elastic("movies", query, size=page_size, skip=from_index, sort=sort)
 

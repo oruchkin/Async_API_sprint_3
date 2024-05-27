@@ -10,3 +10,13 @@ class RedisSettings(BaseSettings):
 class ElasticsearchSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="ELASTIC_")
     url: str = ""
+
+
+class FileapiSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="FILEAPI_")
+    url: str = ""
+
+
+class DjangoSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="DJANGO_")
+    s3_bucket: str = ""

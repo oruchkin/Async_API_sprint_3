@@ -13,6 +13,7 @@ class Film(BaseOrjsonModel):
     title: str
     description: str | None = None
     imdb_rating: float | None = None
+    file: str | None = "AiQfFgMzTGWz8DLzZu2GKN"
     directors: list[PersonId]
     actors: list[PersonId]
     writers: list[PersonId]
