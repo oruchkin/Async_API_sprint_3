@@ -17,13 +17,13 @@ class JsonFileStorage(BaseStorage):
         self.file_path = file_path
 
     def save_state(self, state: Dict[str, Any]) -> None:
-        with open(self.file_path, 'w') as file:
+        with open(self.file_path, "w") as file:
             json.dump(state, file)
 
     def retrieve_state(self) -> Dict[str, Any]:
         if not os.path.exists(self.file_path):
             return {}
-        with open(self.file_path, 'r') as file:
+        with open(self.file_path, "r") as file:
             return json.load(file)
 
 
@@ -32,14 +32,15 @@ class State:
         self.storage = storage
 
     def set_state(self, key: str, value: str) -> None:
-        value_dt = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
+        value_dt = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
 
+        # TODO: Это неправильно, ничего нельзя округлять!
         # Округляем до следующей полной секунды
         if value_dt.microsecond > 0:
             value_dt += timedelta(seconds=1)
             value_dt = value_dt.replace(microsecond=0)
 
-        value_str = value_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        value_str = value_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         state = self.storage.retrieve_state()
         state[key] = value_str

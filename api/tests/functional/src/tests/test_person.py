@@ -7,13 +7,7 @@ from redis.asyncio import Redis
 from .utils import construct_es_documents
 
 person_id = uuid4()
-persons_data = [
-    {
-        "id": str(person_id),
-        "full_name": "John Doe",
-        "gender": None
-    }
-]
+persons_data = [{"id": str(person_id), "full_name": "John Doe"}]
 
 films_data = [
     {
@@ -23,7 +17,7 @@ films_data = [
         "imdb_rating": 8.5,
         "directors": [{"id": str(person_id), "name": "John Doe"}],
         "actors": [],
-        "writers": []
+        "writers": [],
     },
     {
         "id": str(uuid4()),
@@ -32,7 +26,7 @@ films_data = [
         "imdb_rating": 7.0,
         "directors": [],
         "actors": [{"id": str(person_id), "name": "John Doe"}],
-        "writers": []
+        "writers": [],
     },
     {
         "id": str(uuid4()),
@@ -41,8 +35,8 @@ films_data = [
         "imdb_rating": 0.0,
         "directors": [],
         "actors": [],
-        "writers": [{"id": str(person_id), "name": "John Doe"}]
-    }
+        "writers": [{"id": str(person_id), "name": "John Doe"}],
+    },
 ]
 
 
@@ -58,7 +52,6 @@ async def test_get_person(make_get_request, es_write_data):
     assert status == HTTPStatus.OK
     assert body["id"] == str(person_id)
     assert body["full_name"] == "John Doe"
-    assert "gender" not in body or body["gender"] is None
 
 
 @pytest.mark.asyncio
@@ -73,12 +66,15 @@ async def test_get_person_not_found(make_get_request, es_write_data):
     assert status == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.parametrize("query_data, expected_status", [
-    ({"query": "Jo", "page_size": 20}, HTTPStatus.UNPROCESSABLE_ENTITY),
-    ({"query": "John", "page_size": 101}, HTTPStatus.UNPROCESSABLE_ENTITY),
-    ({"query": "John", "page_size": 0}, HTTPStatus.UNPROCESSABLE_ENTITY),
-    ({"query": "John", "page_size": 20, "page_number": -5}, HTTPStatus.UNPROCESSABLE_ENTITY),
-])
+@pytest.mark.parametrize(
+    "query_data, expected_status",
+    [
+        ({"query": "Jo", "page_size": 20}, HTTPStatus.UNPROCESSABLE_ENTITY),
+        ({"query": "John", "page_size": 101}, HTTPStatus.UNPROCESSABLE_ENTITY),
+        ({"query": "John", "page_size": 0}, HTTPStatus.UNPROCESSABLE_ENTITY),
+        ({"query": "John", "page_size": 20, "page_number": -5}, HTTPStatus.UNPROCESSABLE_ENTITY),
+    ],
+)
 @pytest.mark.asyncio
 async def test_search_persons_validation(make_get_request, query_data, expected_status, es_write_data):
     es_persons = construct_es_documents("persons", persons_data)

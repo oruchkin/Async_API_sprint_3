@@ -48,10 +48,6 @@
             "full_name": {
                 "type": "text",
                 "analyzer": "ru_en"
-            },
-            "gender": {
-                "type": "text",
-                "analyzer": "ru_en"
             }
         }
     }

@@ -3,26 +3,11 @@ persons_index_body = {
         "refresh_interval": "1s",
         "analysis": {
             "filter": {
-                "english_stop": {
-                    "type": "stop",
-                    "stopwords": "_english_"
-                },
-                "english_stemmer": {
-                    "type": "stemmer",
-                    "language": "english"
-                },
-                "english_possessive_stemmer": {
-                    "type": "stemmer",
-                    "language": "possessive_english"
-                },
-                "russian_stop": {
-                    "type": "stop",
-                    "stopwords": "_russian_"
-                },
-                "russian_stemmer": {
-                    "type": "stemmer",
-                    "language": "russian"
-                }
+                "english_stop": {"type": "stop", "stopwords": "_english_"},
+                "english_stemmer": {"type": "stemmer", "language": "english"},
+                "english_possessive_stemmer": {"type": "stemmer", "language": "possessive_english"},
+                "russian_stop": {"type": "stop", "stopwords": "_russian_"},
+                "russian_stemmer": {"type": "stemmer", "language": "russian"},
             },
             "analyzer": {
                 "ru_en": {
@@ -33,26 +18,17 @@ persons_index_body = {
                         "english_stemmer",
                         "english_possessive_stemmer",
                         "russian_stop",
-                        "russian_stemmer"
-                    ]
+                        "russian_stemmer",
+                    ],
                 }
-            }
-        }
+            },
+        },
     },
     "mappings": {
         "dynamic": "strict",
         "properties": {
-            "id": {
-                "type": "keyword"
-            },
-            "full_name": {
-                "type": "text",
-                "analyzer": "ru_en"
-            },
-            "gender": {
-                "type": "text",
-                "analyzer": "ru_en"
-            },
-        }
-    }
+            "id": {"type": "keyword"},
+            "full_name": {"type": "text", "analyzer": "ru_en"},
+        },
+    },
 }
