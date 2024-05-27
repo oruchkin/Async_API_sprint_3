@@ -3,7 +3,9 @@ from typing import Literal
 from uuid import UUID
 
 from api.v1.schemas.film import Film
+from api.v1.schemas.film_detailed import FilmDetailed
 from api.v1.schemas.pagination import PaginatedParams
+from core.settings import DjangoSettings, FileapiSettings
 from db.redis import get_cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import TypeAdapter
@@ -16,9 +18,9 @@ router = APIRouter()
 SORT_OPTION = Literal["imdb_rating", "-imdb_rating"]
 
 
-@router.get("/", response_model=list[Film],
-            summary="Список всех фильмов",
-            description="Возвращает полный список фильмов")
+@router.get(
+    "/", response_model=list[Film], summary="Список всех фильмов", description="Возвращает полный список фильмов"
+)
 async def list_films(
     response: Response,
     pagination: PaginatedParams = Depends(),
@@ -49,10 +51,12 @@ async def list_films(
     return mapped
 
 
-@router.get("/search",
-            response_model=list[Film],
-            summary="Поиск по фильмам",
-            description="Возвращает список фильмов по поисковому запросу")
+@router.get(
+    "/search",
+    response_model=list[Film],
+    summary="Поиск по фильмам",
+    description="Возвращает список фильмов по поисковому запросу",
+)
 async def search_films(
     response: Response,
     query: str = Query(min_length=3, description="Search query string"),
@@ -73,12 +77,22 @@ async def search_films(
     return mapped
 
 
-@router.get("/{film_id}",
-            response_model=Film,
-            summary="Данные по конкретному фильму",
-            description="Возвращает подробную информацию о фильме.")
-async def film_details(film_id: UUID, film_service: FilmService = Depends(get_film_service)) -> Film:
+@router.get(
+    "/{film_id}",
+    response_model=FilmDetailed,
+    summary="Данные по конкретному фильму",
+    description="Возвращает подробную информацию о фильме.",
+)
+async def film_details(film_id: UUID, film_service: FilmService = Depends(get_film_service)) -> FilmDetailed:
     if film := await film_service.get_by_id(film_id):
-        return Film.model_validate(film)
+        model = FilmDetailed.model_validate(film)
+
+        if model.file:
+            fileapi = FileapiSettings()
+            django = DjangoSettings()
+            model.file = (
+                f"{fileapi.url}/api/v1/files/redirect_download?short_name={model.file}&bucket={django.s3_bucket}"
+            )
+        return model
 
     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")

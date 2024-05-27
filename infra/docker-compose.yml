@@ -1,32 +1,32 @@
 services:
-  postgres:
+  postgres-base:
     image: postgres:13
     volumes:
       - dbstorage:/var/lib/postgresql/data
     expose: [5432]
     restart: always
-    env_file:
-      - .env
+    env_file: [.env]
+    profiles: ["never"]
+
+  postgres:
+    extends: postgres-base
     profiles: ["all", "admin", "etl"]
 
   postgres-dev:
-    extends: postgres
-    ports: ["5432:5432"]
+    extends: postgres-base
+    ports: [5432:5432]
     env_file: [.env.dev]
-    profiles: ["admin-dev", "etl-dev"]
+    profiles: ["admin-dev", "etl-dev", "api-dev"]
 
 
   admin:
     build:
       context: ./../admin
-    depends_on:
-      - postgres
-    ports:
-      - "8000:8000"
+    depends_on: [postgres]
+    expose: [8000]
     environment:
       - DEBUG:True
-    env_file:
-      - .env
+    env_file: [.env]
     profiles: ["all", "admin"]
 
 
@@ -34,14 +34,12 @@ services:
     build:
       context: ./../admin
       dockerfile: nginx/Dockerfile
-    depends_on:
-      - admin
+    depends_on: [admin]
     restart: always
     volumes:
       - ./../admin/nginx/configs/admin.conf:/etc/nginx/conf.d/configs/admin.conf
       - ./../admin/nginx/nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - "80:80"
+    ports: [80:80]
     profiles: ["all", "admin"]
 
 
@@ -54,18 +52,17 @@ services:
       - esstorage:/usr/share/elasticsearch/data
     expose: [9200]
     restart: always
-    profiles: ["all", "etl", "fastapi"]
+    profiles: ["all", "etl", "api"]
 
   elasticsearch-dev:
     extends: elasticsearch
     ports: ["9200:9200"]
-    profiles: ["etl-dev"]
+    profiles: ["etl-dev", "api-dev"]
 
   elasticsearch-clean:
     extends: elasticsearch
     volumes: !reset [] # must be created on fly
-    profiles: ["fastapi-test"]
-
+    profiles: ["api-test"]
 
   etl:
     build:
@@ -80,85 +77,95 @@ services:
       - .env
     profiles: ["all", "etl"]
 
-
-  redis:
+  ### Redis containers
+  redis-base:
     image: redis
     restart: always
     expose: [6379]
     command: redis-server --save 20 1 --loglevel warning
-    volumes:
-      - redisstorage:/data
-    profiles: ["all", "fastapi", "etl", "etl-dev"]
+    profiles: ["never"]
+  
+  redis:
+    extends: redis-base
+    volumes: [redisstorage:/data]
+    ports: [6379:6379]
+    profiles: ["all", "api", "api-dev", "etl", "etl-dev"]
 
   redis-clean:
-    extends: redis
-    volumes: !reset [] # must be created on the fly
-    profiles: ["fastapi-test"]
+    extends: redis-base
+    volumes: [] # must be created on the fly
+    profiles: ["api-test"]
 
-  fastapi:
+  api:
     build:
       context: ./../api
-    ports: ["8001:26452"]
+    ports: [26452:26452]
     depends_on: [elasticsearch, redis]
     env_file: [.env]
     profiles: ["all", "fastapi"]
 
-  fastapi-test:
+  api-test:
     build:
       context: ./../api
     env_file: [.env, .env.test]
     expose: [26452]
     depends_on: [elasticsearch-clean, redis-clean]
-    profiles: ["fastapi-test"]
+    profiles: ["api-test"]
 
-  fastapi-func-test:
+  api-func-test:
     build:
       context: ./../api/tests/functional
     depends_on:
       - elasticsearch-clean
       - redis-clean
-      - fastapi-test
+      - api-test
     env_file: [.env, .env.test]
     entrypoint: >
       sh -c "ls && pwd && cd /opt
       && python3 -m functional.utils.wait_for_es
       && python3 -m functional.utils.wait_for_redis
       && pytest ./functional/tests"
-    profiles: ["fastapi-test"]
+    profiles: ["api-test"]
 
-  minio:
+  minio-base:
     image: minio/minio
     expose: [9000]
+    ports: [9000:9000] # for download images
     env_file: [.env]
     volumes:
       - minio_storage:/data
     command: server --console-address ":9001" /data
+    profiles: ["never"]
+
+  minio:
+    extends: minio-base
     profiles: ["all", "admin"]
 
   minio-dev:
-    extends: minio
-    ports: ["9001:9001"]
+    extends: minio-base
+    ports: [9001:9001]
     env_file: [.env.dev]
-    profiles: ["admin-dev"]
+    profiles: ["admin-dev", "api-dev"]
 
-  fileapi:
+  fileapi-base:
     build:
       context: ./../file_service
       dockerfile: Dockerfile
-    expose: [8000]
-    depends_on:
-      - postgres
-      - minio
+    expose: [22738]
     env_file: [.env]
+    profiles: ["never"]
+  
+  fileapi:
+    extends: fileapi-base
+    depends_on: [postgres, minio]
     profiles: ["all", "admin"]
 
   fileapi-dev:
-    extends: fileapi
-    ports:
-      - "8001:8000"
-    depends_on: !reset ["postgres-dev", "minio-dev"]
+    extends: fileapi-base
+    ports: [22738:22738]
+    depends_on: [postgres-dev, minio-dev]
     env_file: [.env.dev]
-    profiles: ["admin-dev"]
+    profiles: ["admin-dev", "api-dev"]
 
   postgres-init:
     build:
