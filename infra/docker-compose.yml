@@ -1,5 +1,5 @@
 services:
-  postgres-base:
+  postgres-base: &postgres-base
     image: postgres:13
     volumes:
       - dbstorage:/var/lib/postgresql/data
@@ -13,10 +13,10 @@ services:
     profiles: ["all", "admin", "etl"]
 
   postgres-dev:
-    extends: postgres-base
+    <<: *postgres-base
     ports: [5432:5432]
     env_file: [.env.dev]
-    profiles: ["admin-dev", "etl-dev", "api-dev"]
+    profiles: ["admin-dev", "etl-dev", "api-dev", "init"]
 
 
   admin:
@@ -171,9 +171,10 @@ services:
     build:
       context: ./../postgres_init
       dockerfile: Dockerfile
-    env_file: [.env]
-    depends_on: [postgres]
+    env_file: [.env, .env.dev]
+    depends_on: [postgres-dev]
     restart: "no"
+    stdin_open: true
     profiles: ["init"]
 
 volumes:
