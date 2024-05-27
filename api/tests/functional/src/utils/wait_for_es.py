@@ -24,5 +24,6 @@ def connect(client: Elasticsearch) -> None:
 
 if __name__ == "__main__":
     es_settings = ElasticsearchSettings()
+    logger.info(f"Elasticcsearch url {es_settings.url}")
     es_client = Elasticsearch(hosts=es_settings.url, validate_cert=False, use_ssl=False)
     connect(es_client)

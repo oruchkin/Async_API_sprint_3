@@ -1,11 +1,9 @@
-import os
+# Setup fixtures
 
-PROD_MODE = os.getenv('PROD_MODE').lower() in ('true', '1', 't', 'y', 'yes')
+# `functional.` is because of file locations in the container
 
-base_path = "functional.fixtures" if PROD_MODE else "src.fixtures"
-
-pytest_plugins = [
-    f"{base_path}.redis_fixtures",
-    f"{base_path}.elasticsearch_fixtures",
-    f"{base_path}.http_fixtures",
-]
+pytest_plugins = (
+    "functional.fixtures.elasticsearch_fixtures",
+    "functional.fixtures.http_fixtures",
+    "functional.fixtures.redis_fixtures",
+)

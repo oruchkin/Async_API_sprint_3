@@ -8,7 +8,7 @@ class RedisSettings(BaseSettings):
 
 
 class ElasticsearchSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="ES_")
+    model_config = SettingsConfigDict(env_prefix="ELASTIC_")
     url: str = ""
 
 
