@@ -3,8 +3,7 @@ services:
     image: postgres:13
     volumes:
       - dbstorage:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    expose: [5432]
     restart: always
     env_file:
       - .env
@@ -12,7 +11,7 @@ services:
 
   postgres-dev:
     extends: postgres
-    expose: [5432]
+    ports: ["5432:5432"]
     env_file: [.env.dev]
     profiles: ["admin-dev"]
 
@@ -53,8 +52,7 @@ services:
       - xpack.security.enabled=false
     volumes:
       - esstorage:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
+    expose: [9200]
     restart: always
     profiles: ["all", "etl", "fastapi"]
 
@@ -82,10 +80,7 @@ services:
   redis:
     image: redis
     restart: always
-    expose:
-      - 6379
-    ports:
-      - "6379:6379"
+    expose: [6379]
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - redisstorage:/data
@@ -99,19 +94,16 @@ services:
   fastapi:
     build:
       context: ./../api
-    expose: [8001]
+    ports: ["8001:26452"]
     depends_on: [elasticsearch, redis]
     env_file: [.env]
-    ports:
-      - "8001:8000"
     profiles: ["all", "fastapi"]
 
-  # By some reason tests work only with 8000 port :(
   fastapi-test:
     build:
       context: ./../api
     env_file: [.env, .env.test]
-    expose: [8000]
+    expose: [26452]
     depends_on: [elasticsearch-clean, redis-clean]
     profiles: ["fastapi-test"]
 
@@ -132,9 +124,7 @@ services:
 
   minio:
     image: minio/minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    expose: [9000]
     env_file: [.env]
     volumes:
       - minio_storage:/data
@@ -143,7 +133,7 @@ services:
 
   minio-dev:
     extends: minio
-    expose: [9001]
+    ports: ["9001:9001"]
     env_file: [.env.dev]
     profiles: ["admin-dev"]
 
@@ -151,8 +141,7 @@ services:
     build:
       context: ./../file_service
       dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
+    expose: [8000]
     depends_on:
       - postgres
       - minio
@@ -161,7 +150,8 @@ services:
 
   fileapi-dev:
     extends: fileapi
-    expose: [8001]
+    ports:
+      - "8001:8000"
     depends_on: !reset ["postgres-dev", "minio-dev"]
     env_file: [.env.dev]
     profiles: ["admin-dev"]
