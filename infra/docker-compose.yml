@@ -13,7 +13,7 @@ services:
     extends: postgres
     ports: ["5432:5432"]
     env_file: [.env.dev]
-    profiles: ["admin-dev"]
+    profiles: ["admin-dev", "etl-dev"]
 
 
   admin:
@@ -56,6 +56,11 @@ services:
     restart: always
     profiles: ["all", "etl", "fastapi"]
 
+  elasticsearch-dev:
+    extends: elasticsearch
+    ports: ["9200:9200"]
+    profiles: ["etl-dev"]
+
   elasticsearch-clean:
     extends: elasticsearch
     volumes: !reset [] # must be created on fly
@@ -65,7 +70,6 @@ services:
   etl:
     build:
       context: ./../etl
-      dockerfile: Dockerfile
     environment:
       - .env
     depends_on:
@@ -84,7 +88,7 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - redisstorage:/data
-    profiles: ["all", "fastapi"]
+    profiles: ["all", "fastapi", "etl", "etl-dev"]
 
   redis-clean:
     extends: redis
