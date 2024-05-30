@@ -1,5 +1,17 @@
-# Docker compose
+## Проектная работа 6 спринта
 
+В этом спринте наша команда: 
+- Развернула S3 хранилище ```minio```, 
+- Написала сервис ```File_Service``` для взаимодействия с ```S3``` харнилищем,
+- Внесла изменения в ```Django``` проект, чтобы он мог работать с ```S3```
+- Внесла изменения в ```ETL``` проект, чтобы он мог обновлять данные с ```S3```
+- Доработала сервис ```Api Movies```
+- Написала тесты
+
+### Доска на которой мы вели:
+[Канбан доска](https://github.com/users/oruchkin/projects/7/views/1)
+
+# Docker compose
 ## Profiles
 Чтобы не поднимать всю вселенную разом, можно использовать профили, например:
 ```
@@ -25,8 +37,5 @@ docker volume create <volume name> --opt type=none --opt device=<path to volume>
 
 ![screenshot](readme/tests-failed.png) Тесты в моменте фэйлятся, но подключаются и к redis + elastic, и чистят эластик полностью (что плохо) пофикшу позже
 
-обрати внимание что fastapi сейчас на порту 8001 джанго админка на 8000
 
-![screenshot](readme/common-env.png) сделал общую папку под .env
-
-```docker-compose --env-file ./envs/.env up --build``` запуск если env слетают
+```docker-compose --env-file .env up --build``` запуск если env слетают
