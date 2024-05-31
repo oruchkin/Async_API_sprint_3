@@ -19,9 +19,6 @@ class FileDbModel(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     bucket = Column(String(255), nullable=False)
 
-    Index('idx_file_path', 'path_in_storage')
-    Index('idx_file_short_name', 'short_name')
-
     def __init__(self, path_in_storage: str,
                  filename: str,
                  short_name: str,

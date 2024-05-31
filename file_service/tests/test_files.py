@@ -14,7 +14,8 @@ fake = Faker()
 
 mime_types = ["audio/mpeg", "audio/ogg", "video/mp4", "video/x-msvideo", "video/quicktime"]
 
-@pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
+
 async def test_upload_file():
     mock_db = AsyncMock(spec=AsyncSession)
     mock_storage = AsyncMock(spec=MinioStorage)
@@ -36,7 +37,6 @@ async def test_upload_file():
     mock_storage.save.assert_called_once()
     mock_db.commit.assert_called_once()
 
-@pytest.mark.asyncio
 async def test_download_file():
     mock_db = AsyncMock(spec=AsyncSession)
     mock_storage = AsyncMock(spec=MinioStorage)
@@ -62,7 +62,6 @@ async def test_download_file():
     mock_storage.get_file.assert_called_once_with("mybucket", file_db.path_in_storage)
     assert isinstance(result, StreamingResponse)
 
-@pytest.mark.asyncio
 async def test_delete_file():
     mock_db = AsyncMock(spec=AsyncSession)
     mock_storage = AsyncMock(spec=MinioStorage)
