@@ -56,6 +56,6 @@ async def test_search(make_get_request, es_write_data, redis_client: Redis, quer
 
     # assert
     assert status == expected_answer["status"]
-    if status < 400:
+    if status < HTTPStatus.BAD_REQUEST:
         assert len(keys_after) > len(keys_before), "Cache key must be set"
         assert len(body) == expected_answer["length"]
