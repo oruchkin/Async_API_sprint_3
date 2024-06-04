@@ -1,18 +1,30 @@
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-    MINIO_ENDPOINT: str = Field(default="localhost:9000", env="MINIO_ENDPOINT")
-    MINIO_ACCESS_KEY: str = Field(default="practicum", env="MINIO_ACCESS_KEY")
-    MINIO_SECRET_KEY: str = Field(default="StrongPass", env="MINIO_SECRET_KEY")
-    MINIO_USE_SSL: bool = Field(default=False, env="MINIO_USE_SSL")
-
-    POSTGRES_HOST: str = Field(default="localhost", env="POSTGRES_HOST")
-    POSTGRES_PORT: int = Field(default=5432, env="POSTGRES_PORT")
-    POSTGRES_USER: str = Field(default="user", env="POSTGRES_USER")
-    POSTGRES_DB: str = Field(default="file_db", env="FASTAPI_POSTGRES_DB")
-    POSTGRES_PASSWORD: str = Field(default="password", env="POSTGRES_PASSWORD")
-    POSTGRES_QUERY_LOGGING: bool = Field(default=False, env="FASTAPI_POSTGRES_QUERY_LOGGING")
+class MinioSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MINIO_")
+    endpoint: str = ""
+    access_key: str = ""
+    secret_key: str = ""
+    use_ssl: bool = False
 
 
-settings = Settings()
+class PostgresSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="POSTGRES_")
+    host: str = ""
+    port: int = 0
+    user: str = ""
+    password: str = ""
+
+
+class FileapiSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="FILEAPI_")
+    postgres_db: str = ""
+    postgres_query_logging: bool = False
+
+
+minio_settings = MinioSettings()
+
+postgres_settings = PostgresSettings()
+
+fileapi_settings = FileapiSettings()

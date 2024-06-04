@@ -1,24 +1,29 @@
+import datetime
+
+from aiohttp import ClientSession
+from fastapi import UploadFile
 from miniopy_async import Minio
 from miniopy_async.helpers import ObjectWriteResult
-from fastapi import UploadFile
-from src.core.settings import settings
-from aiohttp import ClientSession
+from src.core.settings import minio_settings
 from starlette.responses import StreamingResponse
-import datetime
 
 
 class MinioStorage:
     def __init__(self):
         self.client = Minio(
-            endpoint=settings.MINIO_ENDPOINT,
-            access_key=settings.MINIO_ACCESS_KEY,
-            secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_USE_SSL,
+            endpoint=minio_settings.endpoint,
+            access_key=minio_settings.access_key,
+            secret_key=minio_settings.secret_key,
+            secure=minio_settings.use_ssl,
         )
 
     async def save(self, file: UploadFile, bucket: str, path: str) -> ObjectWriteResult:
         result = await self.client.put_object(
-            bucket_name=bucket, object_name=path, data=file.file, length=-1, part_size=10 * 1024 * 1024,
+            bucket_name=bucket,
+            object_name=path,
+            data=file.file,
+            length=-1,
+            part_size=10 * 1024 * 1024,
         )
         return result
 
@@ -27,8 +32,8 @@ class MinioStorage:
             response = await self.client.get_object(bucket, path, session)
             return StreamingResponse(
                 response.content.iter_chunked(1024),
-                media_type='application/octet-stream',
-                headers={'Content-Disposition': f'attachment; filename="{path.split("/")[-1]}"'}
+                media_type="application/octet-stream",
+                headers={"Content-Disposition": f'attachment; filename="{path.split("/")[-1]}"'},
             )
 
     async def delete(self, bucket: str, path: str) -> None:

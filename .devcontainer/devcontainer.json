@@ -69,7 +69,8 @@
                 "python.testing.unittestEnabled": false,
                 "python.testing.pytestEnabled": true,
                 "python.analysis.autoImportCompletions": true,
-                "python.analysis.typeCheckingMode": "basic"
+                "python.analysis.typeCheckingMode": "basic",
+                "editor.defaultFormatter": "ms-python.black-formatter"
             }
         }
     },
