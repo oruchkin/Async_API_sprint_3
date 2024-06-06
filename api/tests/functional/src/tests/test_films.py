@@ -7,19 +7,14 @@ from redis.asyncio import Redis
 from .utils import construct_es_documents
 
 genres_data = [
-    {
-        "id": str(uuid.uuid4()),
-        "name": f"genre-{ix}",
-        "description": f"Description for genre-{ix}"
-    }
-    for ix in range(5)
+    {"id": str(uuid.uuid4()), "name": f"genre-{ix}", "description": f"Description for genre-{ix}"} for ix in range(5)
 ]
 
 films_data = [
     {
         "id": str(uuid.uuid4()),
         "imdb_rating": ix / 10,
-        "genres": [genres_data[ix % len(genres_data)]["name"]],
+        "genres": [{"name": g["name"], "id": g["id"]} for g in [genres_data[ix % len(genres_data)]]],
         "title": "The Star",
         "description": "New World",
         "directors_names": ["Stan"],

@@ -109,7 +109,7 @@ def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
 def main():
     sqlite_db_path = "db.sqlite"
     dsl = {
-        "dbname": os.environ.get("POSTGRES_DB"),
+        "dbname": os.environ.get("ADMIN_POSTGRES_DB"),
         "user": os.environ.get("POSTGRES_USER"),
         "password": os.environ.get("POSTGRES_PASSWORD"),
         "host": os.environ.get("POSTGRES_HOST"),

@@ -11,7 +11,10 @@ es_films = [
     {
         "id": str(uuid.uuid4()),
         "imdb_rating": random.randint(0, 10),
-        "genres": ["Action", "Sci-Fi"],
+        "genres": [
+            {"id": "ef86b8ff-3c82-4d31-ad8e-72b69f4e3f95", "name": "Action"},
+            {"id": "ef86b8ff-3c82-4d31-ad8e-72b69f4e3f95", "name": "Sci-Fi"},
+        ],
         "title": "The Star" if ix < 15 else "Mashed potato",
         "description": "New World",
         "directors_names": ["Stan"],

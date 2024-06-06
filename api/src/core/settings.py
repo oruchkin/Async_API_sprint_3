@@ -18,5 +18,5 @@ class FileapiSettings(BaseSettings):
 
 
 class DjangoSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="DJANGO_")
+    model_config = SettingsConfigDict(env_prefix="ADMIN_")
     s3_bucket: str = ""

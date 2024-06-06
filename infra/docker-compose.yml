@@ -124,6 +124,7 @@ services:
       - redis-clean
       - api-test
     env_file: [.env, .env.test]
+    # Filter tests" -k test_list_films_by_genre
     entrypoint: >
       sh -c "ls && pwd && cd /opt
       && python3 -m functional.utils.wait_for_es

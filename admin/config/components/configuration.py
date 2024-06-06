@@ -14,7 +14,7 @@ USE_TZ = True
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get("ADMIN_SECRET_KEY")
 
 LOCALE_PATHS = [os.path.join(BASE_DIR, "locale")]
 
