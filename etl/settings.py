@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     # PostgreSQL settings
-    postgres_dbname: str = Field(..., alias="POSTGRES_DB")
+    postgres_dbname: str = Field(..., alias="ADMIN_POSTGRES_DB")
     postgres_user: str = Field(..., alias="POSTGRES_USER")
     postgres_password: str = Field(..., alias="POSTGRES_PASSWORD")
     postgres_host: str = Field(..., alias="POSTGRES_HOST")
