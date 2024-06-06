@@ -1,9 +1,9 @@
+import json
 import urllib.parse
+from http import HTTPStatus
 
 import aiohttp
 import pytest_asyncio
-from http import HTTPStatus
-
 
 from ..settings import FastAPISettings
 
@@ -36,10 +36,10 @@ def make_get_request(http_client: aiohttp.ClientSession):
         # So we have to do it manually
         url = encode_url(api_settings.url, path, query_data)
         async with http_client.get(url) as response:
-            body = await response.json()
+            body = await response.text()
             if response.status >= HTTPStatus.INTERNAL_SERVER_ERROR:
                 raise ValueError(body)
 
-            return response.status, body
+            return response.status, json.loads(body)
 
     return inner

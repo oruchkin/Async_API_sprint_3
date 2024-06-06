@@ -11,8 +11,8 @@ from ..settings import ElasticsearchSettings
 
 @pytest_asyncio.fixture(scope="function")
 async def es_client():
-    es_esttings = ElasticsearchSettings()
-    es_client = AsyncElasticsearch(hosts=es_esttings.url, verify_certs=False)
+    es_settings = ElasticsearchSettings()
+    es_client = AsyncElasticsearch(hosts=es_settings.url, verify_certs=False)
     yield es_client
     await es_client.close()
 
