@@ -16,6 +16,9 @@ class PostgresSettings(BaseSettings):
     user: str = ""
     password: str = ""
 
+    def get_url(self, db: str) -> str:
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{db}"
+
 
 class FileapiSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="FILEAPI_")
