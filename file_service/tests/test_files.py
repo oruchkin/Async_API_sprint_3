@@ -1,6 +1,7 @@
+import datetime
 import random
 import uuid
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 from faker import Faker
 from fastapi import UploadFile
@@ -16,21 +17,28 @@ mime_types = ["audio/mpeg", "audio/ogg", "video/mp4", "video/x-msvideo", "video/
 
 
 async def test_upload_file():
-    mock_db = AsyncMock(spec=BaseProvider)
-    mock_storage = AsyncMock(spec=MinioStorage)
-    mock_upload_file = AsyncMock(spec=UploadFile)
+    datetime_mock = Mock(wraps=datetime.datetime)
+    datetime_mock.now.return_value = datetime.datetime(1999, 1, 1)
+    bucket = "mybucket"
+    with patch("datetime.datetime", new=datetime_mock):
 
-    file_mime_type = random.choice(mime_types)
-    mock_upload_file.filename = fake.file_name(extension=file_mime_type.split("/")[-1])
-    mock_upload_file.content_type = file_mime_type
-    mock_upload_file.size = fake.random_number(digits=6)
+        mock_db = AsyncMock(spec=BaseProvider)
+        mock_storage = AsyncMock(spec=MinioStorage)
+        mock_upload_file = AsyncMock(spec=UploadFile)
 
-    file_service = FileService(db=mock_db, storage=mock_storage)
+        file_mime_type = "audio/mpeg"
+        mock_upload_file.filename = fake.file_name(extension=file_mime_type.split("/")[-1])
+        mock_upload_file.content_type = file_mime_type
+        mock_upload_file.size = fake.random_number(digits=6)
 
-    await file_service.upload_file(file=mock_upload_file, bucket="mybucket", path=mock_upload_file.filename)
+        file_service = FileService(db=mock_db, storage=mock_storage)
 
-    mock_storage.save.assert_called_once()
-    mock_db.add.assert_called_once()
+        await file_service.upload_file(file=mock_upload_file, bucket=bucket)
+
+        mock_storage.save.assert_called_once()
+        mock_db.add.assert_called_once()
+        model: FileDbModel = mock_db.add.call_args[0][0]
+        assert model.path_in_storage.startswith("uploads/1999Q1/")
 
 
 async def test_download_file():

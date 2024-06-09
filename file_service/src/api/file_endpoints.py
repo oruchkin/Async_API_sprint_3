@@ -12,10 +12,8 @@ router = APIRouter()
 @router.post("/")
 async def upload_file(file: UploadFile, bucket: str = "mybucket", db: BaseProvider = Depends(get_db)):
     # TODO: bucket must be defined by the client id
-    if not file.filename:
-        raise ValueError("File name must be defined")
     file_service = FileService(db, MinioStorage())
-    result = await file_service.upload_file(file=file, bucket=bucket, path=file.filename)
+    result = await file_service.upload_file(file=file, bucket=bucket)
     return result
 
 
