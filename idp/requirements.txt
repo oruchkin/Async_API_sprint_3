@@ -1,0 +1,11 @@
+aiofiles==23.2.1
+aiohttp==3.9.5
+asyncpg==0.29.0
+fastapi==0.111.0
+miniopy-async==1.19
+alembic==1.13.1
+Faker==25.2.0
+psycopg2-binary==2.9.9
+shortuuid==1.0.13
+uvicorn==0.29.0
+SQLAlchemy==2.0.30
