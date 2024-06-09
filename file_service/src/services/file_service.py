@@ -1,4 +1,6 @@
+import datetime
 import logging
+import math
 import os
 import uuid
 
@@ -17,9 +19,9 @@ class FileService:
         self._db = db
         self.storage = storage
 
-    async def upload_file(self, file: UploadFile, bucket: str, path: str) -> FileDbModel:
+    async def upload_file(self, file: UploadFile, bucket: str) -> FileDbModel:
         """Upload a file to the storage."""
-        _, file_extension = os.path.splitext(path)
+
         if not file.filename:
             raise ValueError("File name is required")
 
@@ -29,8 +31,7 @@ class FileService:
         if not file.content_type:
             raise ValueError("File content type is required")
 
-        id = uuid.uuid4()
-        full_path = f"uploads/{str(id)}{file_extension}"
+        full_path = FileService._construct_file_path(file.filename)
         try:
             await self.storage.save(file, bucket, full_path)
 
@@ -42,7 +43,6 @@ class FileService:
                 file_type=file.content_type,
                 bucket=bucket,
             )
-            file_db.id = id
             await self._db.add(file_db)
             return file_db
 
@@ -81,3 +81,13 @@ class FileService:
     async def has_permission(self, short_name: str) -> bool:
         """Future method for checking permissions."""
         return True
+
+    @staticmethod
+    def _construct_file_path(file_name: str) -> str:
+
+        id = uuid.uuid4()
+        now = datetime.datetime.now()
+        _, file_extension = os.path.splitext(file_name)
+        dt = str(now.year) + "Q" + str(math.ceil(now.month / 4))
+        full_path = f"uploads/{dt}/{str(id)}{file_extension}"
+        return full_path
