@@ -16,7 +16,7 @@ services:
     <<: *postgres-base
     ports: [5432:5432]
     env_file: [.env.dev]
-    profiles: ["admin-dev", "etl-dev", "api-dev", "init"]
+    profiles: ["admin-dev", "etl-dev", "api-dev", "idp-dev", "init"]
 
 
   admin:
@@ -181,6 +181,22 @@ services:
     restart: "no"
     stdin_open: true
     profiles: ["init"]
+
+  idp:
+    build:
+      context: ./../idp
+    expose: [29543]
+    depends_on: [postgres]
+    env_file: [.env]
+    profiles: ["all", "fastapi"]
+
+  keycloak:
+    build:
+      context: ./../idp/keycloak
+    ports: [32546:8080, 32548:9000]
+    depends_on: [postgres-dev]
+    env_file: [.env, .env.dev]
+    profiles: [idp-dev]
 
 volumes:
   dbstorage:
