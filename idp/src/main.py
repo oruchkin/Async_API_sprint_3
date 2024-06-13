@@ -1,5 +1,6 @@
 import uvicorn
 from api.v1 import index
+from core.lifecycle import lifespan
 from fastapi import FastAPI
 
 app = FastAPI(
@@ -8,6 +9,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/api/openapi",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan,
 )
 
 app.include_router(index.router, prefix="/api/v1")

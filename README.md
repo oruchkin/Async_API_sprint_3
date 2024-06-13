@@ -39,3 +39,11 @@ docker volume create <volume name> --opt type=none --opt device=<path to volume>
 
 
 ```docker-compose --env-file .env up --build``` запуск если env слетают
+
+# IDP
+Check later: https://www.reddit.com/r/Python/comments/16pin4l/a_maintained_library_for_oidc_in_python/
+
+## Keycloak
+From https://medium.com/@imsanthiyag/introduction-to-keycloak-admin-api-44beb9011f7d
+Go to Clients, on the Clients list tab select admin-cli and in Capability config set `Client authentication` to On. Also check `Service accounts roles`.
+After hitting Save you must see new Credentials tab on the top. Switch to that tab and copy Client secret value.
