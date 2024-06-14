@@ -17,12 +17,8 @@ class KeycloackClient:
         """
         Get all users
         """
-        headers = {
-            "Authorization": await self._get_auth_header(),
-            "Content-Type": "application/json"
-        }
-
         url = self._endpoints.list_users()
+        headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.get(url) as client:
                 return await client.json()
@@ -41,19 +37,34 @@ class KeycloackClient:
             "requiredActions": [],
             "credentials": [{"type": "password", "value": password, "temporary": False}]
         }
-        headers = {
-            "Authorization": await self._get_auth_header(),
-            "Content-Type": "application/json"
-        }
-
         url = self._endpoints.create_user()
+        headers = await self._get_request_headers()
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.post(url, json=payload) as client:
+                if not client.ok:
+                    json_body = await client.json()
+                    raise ValueError(json_body)
+                
+    async def reset_password(self, user_id: str, password: str) -> None:
+        """
+        Reset user's password by `user_id`. Don't forget to verify old password beforehand.
+        """
+        payload = {"temporary": False, "type": "password", "value": password}
+        url = self._endpoints.reset_user_password(user_id)
+        headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as client:
                 if not client.ok:
                     json_body = await client.json()
                     raise ValueError(json_body)
 
-    async def _get_auth_header(self, throw_if_empty: bool = False) -> str:
+    async def _get_request_headers(self) -> dict:
+        return {
+            "Authorization": await self._get_auth_header_value(),
+            "Content-Type": "application/json"
+        }
+
+    async def _get_auth_header_value(self, throw_if_empty: bool = False) -> str:
         if self._access_token:
             return f"{self._access_token['token_type']} {self._access_token['access_token']}"
 
@@ -61,7 +72,7 @@ class KeycloackClient:
             raise ValueError("Failed")
 
         await self.auth()
-        return await self._get_auth_header(True)
+        return await self._get_auth_header_value(True)
 
     async def discovery(self) -> None:
         url = self._endpoints.oidc_discovery()

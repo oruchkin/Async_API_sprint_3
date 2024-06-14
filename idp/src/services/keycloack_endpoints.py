@@ -31,3 +31,6 @@ class KeycloakEndpoints:
         https://www.keycloak.org/docs-api/25.0.0/rest-api/index.html#_users
         """
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
+    
+    def reset_user_password(self, user_id: str) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
