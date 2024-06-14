@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 
 from core.settings import KeycloakSettings
 from fastapi import FastAPI
-
 from services.keycloak_client import KeycloackClient
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,9 @@ async def lifespan(app: FastAPI):
     """
     settings = KeycloakSettings()
     client = KeycloackClient(settings)
-    await client.create_user("user@example.com")
+    # testing Keycloak client
+    all_users = await client.list_users()
+    print(len(all_users))
 
     yield
 

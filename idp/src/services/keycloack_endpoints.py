@@ -1,5 +1,6 @@
 from core.settings import KeycloakSettings
 
+
 class KeycloakEndpoints:
     _oidc_endpoints: dict[str, str] | None = None
 
@@ -19,9 +20,12 @@ class KeycloakEndpoints:
     def oidc_token(self) -> str:
         if self._oidc_endpoints:
             return self._oidc_endpoints["token_endpoint"]
-        
+
         raise ValueError("Run discovery first")
-    
+
+    def list_users(self) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/users"
+
     def create_user(self) -> str:
         """
         https://www.keycloak.org/docs-api/25.0.0/rest-api/index.html#_users
