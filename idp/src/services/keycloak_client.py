@@ -27,7 +27,7 @@ class KeycloackClient:
             async with session.get(url) as client:
                 return await client.json()
 
-    async def create_user(self, email: str, username: str | None = None) -> None:
+    async def create_user(self, email: str, password: str, username: str | None = None) -> None:
         """
         Creates new user
         """
@@ -38,7 +38,8 @@ class KeycloackClient:
             "emailVerified": False,
             "enabled": True,
             "groups": [],
-            "requiredActions": []
+            "requiredActions": [],
+            "credentials": [{"type": "password", "value": password, "temporary": False}]
         }
         headers = {
             "Authorization": await self._get_auth_header(),
@@ -55,7 +56,7 @@ class KeycloackClient:
     async def _get_auth_header(self, throw_if_empty: bool = False) -> str:
         if self._access_token:
             return f"{self._access_token['token_type']} {self._access_token['access_token']}"
-        
+
         if throw_if_empty:
             raise ValueError("Failed")
 
