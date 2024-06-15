@@ -59,7 +59,7 @@
                         "source.fixAll.eslint": "explicit",
                         "source.organizeImports.isort": "explicit"
                     },
-                    "editor.defaultFormatter": "ms-python.flake8"
+                    "editor.defaultFormatter": "ms-python.black-formatter"
                 },
                 "prettier.printWidth": 120,
                 "prettier.singleQuote": false,

@@ -25,6 +25,12 @@ class KeycloakEndpoints:
             return self._oidc_endpoints["token_endpoint"]
 
         raise ValueError("Run discovery first")
+    
+    def oidc_userinfo(self) -> str:
+        if self._oidc_endpoints:
+            return self._oidc_endpoints["userinfo_endpoint"]
+
+        raise ValueError("Run discovery first")
 
     def list_users(self) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
@@ -38,5 +44,8 @@ class KeycloakEndpoints:
     def reset_user_password(self, user_id: str) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
     
-    def roles(self, client_id: str) -> str:
-        return f"{self._settings.url}/{self._realm}/clients/{client_id}/roles"
+    def roles(self, id: str) -> str:
+        """
+        id of the client (UUID, not client_id)
+        """
+        return f"{self._settings.url}/admin/realms/{self._realm}/clients/{id}/roles"
