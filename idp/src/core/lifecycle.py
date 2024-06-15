@@ -17,8 +17,11 @@ async def lifespan(app: FastAPI):
     settings = KeycloakSettings()
     client = KeycloackClient(settings)
     # testing Keycloak client
-    all_users = await client.list_users()
-    print(len(all_users))
+    await client.get_id()
+    await client.create_role("blablabla")
+    # await client.create_user("jonny4@example.com", "sample-password123")
+    token = await client.authenticate("jonny4@example.com", "sample-password123")
+    refreshed = await client.refresh(token.refresh_token)
 
     yield
 

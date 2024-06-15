@@ -43,6 +43,8 @@ docker volume create <volume name> --opt type=none --opt device=<path to volume>
 # IDP
 Check later: https://www.reddit.com/r/Python/comments/16pin4l/a_maintained_library_for_oidc_in_python/
 
+JWT libraries: https://jwt.io/libraries?language=Python
+
 ## Keycloak
 
 ### Development

@@ -8,6 +8,9 @@ class KeycloakEndpoints:
         self._settings = settings
         self._realm = "master"
 
+    def client_id(self, clientId: str) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/clients?clientId={clientId}"
+
     def oidc_discovery(self) -> str:
         return f"{self._settings.url}/realms/{self._realm}/.well-known/openid-configuration"
 
@@ -34,3 +37,6 @@ class KeycloakEndpoints:
     
     def reset_user_password(self, user_id: str) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
+    
+    def roles(self, client_id: str) -> str:
+        return f"{self._settings.url}/{self._realm}/clients/{client_id}/roles"
