@@ -44,6 +44,9 @@ class KeycloakEndpoints:
     def reset_user_password(self, user_id: str) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
 
+    def single_role(self, role_id: str) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/roles-by-id/{role_id}"
+
     def roles(self, id: str) -> str:
         """
         id of the client (UUID, not client_id)

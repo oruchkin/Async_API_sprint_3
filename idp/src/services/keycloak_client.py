@@ -16,18 +16,39 @@ class KeycloackClient:
         self._endpoints = KeycloakEndpoints(settings)
         self._timeout = aiohttp.ClientTimeout(total=None, sock_connect=5, sock_read=5)
 
-    async def create_role(self, name: str) -> None:
-        payload = {"name": name, "clientRole": False}
+    async def list_roles(self) -> list[models.RoleEntryModel]:
+        headers = await self._get_request_headers()
+        id = await self._get_client_id()
+        url = self._endpoints.roles(id)
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.get(url) as response:
+                data = await response.text()
+                if response.ok:
+                    ta = TypeAdapter(list[models.RoleEntryModel])
+                    return ta.validate_json(data)
+
+                error = models.ErrorModel.model_validate_json(data)
+                raise ValueError(error.error)
+
+    async def create_role(self, name: str, description: str | None = None) -> None:
+        payload = {"name": name, "clientRole": False, "description": description or ""}
         headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.roles(id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
-                if response.ok:
-                    return
+                if not response.ok:
+                    response = await response.json()
+                    raise ValueError(response["error"])
 
-                response = await response.json()
-                raise ValueError(response["error"])
+    async def delete_role(self, role_id: str) -> None:
+        headers = await self._get_request_headers()
+        url = self._endpoints.single_role(role_id)
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.delete(url) as response:
+                if not response.ok:
+                    response = await response.json()
+                    raise ValueError(response["error"])
 
     async def list_users(self) -> list[models.UserEntryModel]:
         """
@@ -67,10 +88,10 @@ class KeycloackClient:
                     json_body = await response.json()
                     raise ValueError(json_body)
 
-    async def list_roles(self) -> list[models.RoleEntryModel]:
+    async def list_user_roles(self, user_id: str) -> list[models.RoleEntryModel]:
         headers = await self._get_request_headers()
         id = await self._get_client_id()
-        url = self._endpoints.roles(id)
+        url = self._endpoints.set_user_role(user_id, id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.get(url) as response:
                 data = await response.text()
@@ -82,13 +103,26 @@ class KeycloackClient:
                 raise ValueError(error.error)
 
     async def set_user_role(self, user_id: str, role: models.RoleEntryModel) -> None:
-        # TODO: Payload here is just `id` and `name`
         headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
+        # TODO: Payload here is just `id` and `name`
         payload = [role.model_dump()]
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
+                if not response.ok:
+                    data = await response.text()
+                    error = models.ErrorModel.model_validate_json(data)
+                    raise ValueError(error.error)
+
+    async def remove_user_role(self, user_id: str, role: models.RoleEntryModel) -> None:
+        headers = await self._get_request_headers()
+        id = await self._get_client_id()
+        url = self._endpoints.set_user_role(user_id, id)
+        # TODO: Payload here is just `id` and `name`
+        payload = [role.model_dump()]
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.delete(url, json=payload) as response:
                 if not response.ok:
                     data = await response.text()
                     error = models.ErrorModel.model_validate_json(data)
