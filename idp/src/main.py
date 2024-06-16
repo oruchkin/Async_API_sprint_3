@@ -1,5 +1,5 @@
 import uvicorn
-from api.v1 import index
+from api.v1 import index, users
 from core.lifecycle import lifespan
 from fastapi import FastAPI
 
@@ -13,6 +13,7 @@ app = FastAPI(
 )
 
 app.include_router(index.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 
 
 if __name__ == "__main__":

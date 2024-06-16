@@ -35,6 +35,9 @@ class KeycloakEndpoints:
     def list_users(self) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
 
+    def get_user_with_email(self, email: str) -> str:
+        return f"{self.list_users()}?email={email}&exact=true"
+
     def create_user(self) -> str:
         """
         https://www.keycloak.org/docs-api/25.0.0/rest-api/index.html#_users

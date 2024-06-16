@@ -11,7 +11,7 @@ class TokenModel(BaseModel):
 
     expires_in: int
     refresh_expires_in: int
-    refresh_token: str
+    refresh_token: str | None
     token_type: str
     """Usually Bearer"""
 
@@ -22,4 +22,3 @@ class TokenModel(BaseModel):
 
     session_state: str
     scope: str
-

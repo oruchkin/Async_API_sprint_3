@@ -1,3 +1,5 @@
+import datetime
+from functools import lru_cache
 from typing import Any, cast
 
 import aiohttp
@@ -8,7 +10,10 @@ from services.keycloack_endpoints import KeycloakEndpoints
 
 
 class KeycloackClient:
-    _access_token: dict[str, Any] | None = None
+    # TODO: Verify token expiration
+    # (dt2 - dt1).total_seconds()
+    _access_token: models.TokenModel | None = None
+    _access_token_issued: datetime.datetime | None = None
     _client_id: str | None = None
 
     def __init__(self, settings: KeycloakSettings):
@@ -66,6 +71,22 @@ class KeycloackClient:
                 error = models.ErrorModel.model_validate_json(data)
                 raise ValueError(error.error)
 
+    async def get_user_with_email(self, email: str) -> models.UserEntryModel:
+        """
+        Get all users
+        """
+        url = self._endpoints.get_user_with_email(email)
+        headers = await self._get_request_headers()
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.get(url) as response:
+                data = await response.text()
+                if response.ok:
+                    ta = TypeAdapter(list[models.UserEntryModel])
+                    return ta.validate_json(data)[0]
+
+                error = models.ErrorModel.model_validate_json(data)
+                raise ValueError(error.error)
+
     async def create_user(self, email: str, password: str, username: str | None = None) -> None:
         """
         Creates new user
@@ -84,9 +105,10 @@ class KeycloackClient:
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
+                data = await response.text()
                 if not response.ok:
-                    json_body = await response.json()
-                    raise ValueError(json_body)
+                    error = models.ErrorModel.model_validate_json(data)
+                    raise ValueError(error.error)
 
     async def list_user_roles(self, user_id: str) -> list[models.RoleEntryModel]:
         headers = await self._get_request_headers()
@@ -187,7 +209,7 @@ class KeycloackClient:
 
     async def _get_auth_header_value(self, throw_if_empty: bool = False) -> str:
         if self._access_token:
-            return f"{self._access_token['token_type']} {self._access_token['access_token']}"
+            return f"{self._access_token.token_type} {self._access_token.access_token}"
 
         if throw_if_empty:
             raise ValueError("Failed")
@@ -216,7 +238,14 @@ class KeycloackClient:
         }
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, data=payload) as response:
-                self._access_token = await response.json()
+                data = await response.text()
+                if response.ok:
+                    self._access_token_issued = datetime.datetime.now()
+                    self._access_token = models.TokenModel.model_validate_json(data)
+
+                self._access_token_issued = None
+                error = models.ErrorModel.model_validate_json(data)
+                raise ValueError(error.error)
 
     async def _get_endpoints(self) -> KeycloakEndpoints:
         if not self._endpoints.oidc_has_discovery():
@@ -241,3 +270,10 @@ class KeycloackClient:
                     return cast(str, self._client_id)
 
                 raise ValueError(data["error"])
+
+
+@lru_cache()
+def get_keycloak_service() -> KeycloackClient:
+    settings = KeycloakSettings()
+    client = KeycloackClient(settings)
+    return client
