@@ -1,6 +1,6 @@
 import datetime
 from functools import lru_cache
-from typing import Any, cast
+from typing import cast
 
 import aiohttp
 import models
@@ -193,7 +193,7 @@ class KeycloackClient:
             "refresh_token": refresh_token,
         }
         headers = {"Content-type": "application/x-www-form-urlencoded"}
-        url = self._endpoints.oidc_token()
+        url = (await self._get_endpoints()).oidc_token()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, data=payload) as response:
                 # 'error': 'invalid_grant', 'error_description': 'Invalid user credentials'

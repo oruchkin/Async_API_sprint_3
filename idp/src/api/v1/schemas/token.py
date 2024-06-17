@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class TokenModel(BaseModel):
-    model_config = ConfigDict(strict=False)
+class Token(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
     access_token: str
     """
@@ -11,7 +11,7 @@ class TokenModel(BaseModel):
 
     expires_in: int
     refresh_expires_in: int
-    refresh_token: str | None = None
+    refresh_token: str
     token_type: str
     """Usually Bearer"""
 
@@ -20,5 +20,4 @@ class TokenModel(BaseModel):
     who is the user (OpenID Connect), it's for app which requested the token == authentication
     """
 
-    session_state: str | None = None
     scope: str
