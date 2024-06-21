@@ -1,12 +1,8 @@
-from typing import Literal
-
 import api.v1.schemas as schemas
 from fastapi import APIRouter, Depends
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 
 router = APIRouter()
-
-SORT_OPTION = Literal["imdb_rating", "-imdb_rating"]
 
 
 @router.post(
@@ -31,8 +27,8 @@ async def user_token_refresh(
     token: schemas.RefreshToken,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> schemas.Token:
-    token = await keycloak.refresh(token.refresh_token)
-    return schemas.Token.model_validate(token)
+    access_token = await keycloak.refresh(token.refresh_token)
+    return schemas.Token.model_validate(access_token)
 
 
 @router.post(

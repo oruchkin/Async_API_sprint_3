@@ -1,6 +1,7 @@
 import datetime
 from functools import lru_cache
 from typing import cast
+from uuid import UUID
 
 import aiohttp
 import models
@@ -43,10 +44,13 @@ class KeycloackClient:
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
                 if not response.ok:
-                    response = await response.json()
-                    raise ValueError(response["error"])
+                    data = await response.json()
+                    if "errorMessage" in data:
+                        raise ValueError(data["errorMessage"])
 
-    async def delete_role(self, role_id: str) -> None:
+                    raise ValueError(data["error_description"])
+
+    async def delete_role(self, role_id: UUID) -> None:
         headers = await self._get_request_headers()
         url = self._endpoints.single_role(role_id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
@@ -242,10 +246,11 @@ class KeycloackClient:
                 if response.ok:
                     self._access_token_issued = datetime.datetime.now()
                     self._access_token = models.TokenModel.model_validate_json(data)
-
-                self._access_token_issued = None
-                error = models.ErrorModel.model_validate_json(data)
-                raise ValueError(error.error)
+                else:
+                    self._access_token_issued = None
+                    self._access_token = None
+                    error = models.ErrorModel.model_validate_json(data)
+                    raise ValueError(error.error)
 
     async def _get_endpoints(self) -> KeycloakEndpoints:
         if not self._endpoints.oidc_has_discovery():
@@ -259,7 +264,8 @@ class KeycloackClient:
 
         # TODO: Current approach is wrong as it requires too many permissions
         # and returns clients secrets which looks like too much for get client id.
-        # Solution - add custom mapper Mapper Type: Hardcoded claim (https://stackoverflow.com/questions/68632386/get-id-not-clientid-from-keycloak-jwt-token)
+        # Solution - add custom mapper Mapper Type: Hardcoded claim
+        # (https://stackoverflow.com/questions/68632386/get-id-not-clientid-from-keycloak-jwt-token)
         headers = await self._get_request_headers()
         url = self._endpoints.client_id(self._settings.client)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
