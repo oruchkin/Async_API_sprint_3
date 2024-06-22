@@ -8,7 +8,7 @@ class User(BaseModel):
 
     id: UUID
     username: str
-    email: str
+    email: str | None = None
     emailVerified: bool
     createdTimestamp: int
     enabled: bool
