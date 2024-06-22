@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from core.settings import KeycloakSettings
 
 
@@ -47,7 +49,7 @@ class KeycloakEndpoints:
     def reset_user_password(self, user_id: str) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
 
-    def single_role(self, role_id: str) -> str:
+    def single_role(self, role_id: UUID) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/roles-by-id/{role_id}"
 
     def roles(self, id: str) -> str:
