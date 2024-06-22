@@ -1,13 +1,16 @@
 import datetime
+import json
 from functools import lru_cache
 from typing import cast
 from uuid import UUID
 
 import aiohttp
+import backoff
 import models
 from core.settings import KeycloakSettings
 from pydantic import TypeAdapter
 from services.keycloack_endpoints import KeycloakEndpoints
+from services.not_authorized_error import NotAuthorizedError
 
 
 class KeycloackClient:
@@ -22,20 +25,26 @@ class KeycloackClient:
         self._endpoints = KeycloakEndpoints(settings)
         self._timeout = aiohttp.ClientTimeout(total=None, sock_connect=5, sock_read=5)
 
+    async def get_role(self, role_id: UUID) -> models.RoleEntryModel:
+        headers = await self._get_request_headers()
+        url = self._endpoints.get_role_with_id(role_id)
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.get(url) as response:
+                data = await self._handle_failed_response(response)
+                return models.RoleEntryModel.model_validate_json(data)
+
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def list_roles(self) -> list[models.RoleEntryModel]:
         headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.roles(id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.get(url) as response:
-                data = await response.text()
-                if response.ok:
-                    ta = TypeAdapter(list[models.RoleEntryModel])
-                    return ta.validate_json(data)
+                data = await self._handle_failed_response(response)
+                ta = TypeAdapter(list[models.RoleEntryModel])
+                return ta.validate_json(data)
 
-                error = models.ErrorModel.model_validate_json(data)
-                raise ValueError(error.error)
-
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def create_role(self, name: str, description: str | None = None) -> None:
         payload = {"name": name, "clientRole": False, "description": description or ""}
         headers = await self._get_request_headers()
@@ -50,15 +59,28 @@ class KeycloackClient:
 
                     raise ValueError(data["error_description"])
 
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def delete_role(self, role_id: UUID) -> None:
         headers = await self._get_request_headers()
         url = self._endpoints.single_role(role_id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.delete(url) as response:
-                if not response.ok:
-                    response = await response.json()
-                    raise ValueError(response["error"])
+                await self._handle_failed_response(response)
 
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
+    async def modify_role(self, role: models.RoleEntryModel) -> None:
+        headers = await self._get_request_headers()
+        url = self._endpoints.single_role(role.id)
+        payload = {
+            "id": str(role.id),
+            "name": role.name,
+            "description": role.description,
+        }
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.put(url, json=payload) as response:
+                await self._handle_failed_response(response)
+
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def list_users(self) -> list[models.UserEntryModel]:
         """
         Get all users
@@ -67,30 +89,24 @@ class KeycloackClient:
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.get(url) as response:
-                data = await response.text()
-                if response.ok:
-                    ta = TypeAdapter(list[models.UserEntryModel])
-                    return ta.validate_json(data)
+                data = await self._handle_failed_response(response)
+                ta = TypeAdapter(list[models.UserEntryModel])
+                return ta.validate_json(data)
 
-                error = models.ErrorModel.model_validate_json(data)
-                raise ValueError(error.error)
-
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def get_user_with_email(self, email: str) -> models.UserEntryModel:
         """
-        Get all users
+        Get user by email
         """
         url = self._endpoints.get_user_with_email(email)
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.get(url) as response:
-                data = await response.text()
-                if response.ok:
-                    ta = TypeAdapter(list[models.UserEntryModel])
-                    return ta.validate_json(data)[0]
+                data = await self._handle_failed_response(response)
+                ta = TypeAdapter(list[models.UserEntryModel])
+                return ta.validate_json(data)[0]
 
-                error = models.ErrorModel.model_validate_json(data)
-                raise ValueError(error.error)
-
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def create_user(self, email: str, password: str, username: str | None = None) -> None:
         """
         Creates new user
@@ -109,51 +125,50 @@ class KeycloackClient:
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
-                data = await response.text()
-                if not response.ok:
-                    error = models.ErrorModel.model_validate_json(data)
-                    raise ValueError(error.error)
+                await self._handle_failed_response(response)
 
-    async def list_user_roles(self, user_id: str) -> list[models.RoleEntryModel]:
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
+    async def list_user_roles(self, user_id: UUID) -> list[models.RoleEntryModel]:
         headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.get(url) as response:
-                data = await response.text()
-                if response.ok:
-                    ta = TypeAdapter(list[models.RoleEntryModel])
-                    return ta.validate_json(data)
+                data = await self._handle_failed_response(response)
+                ta = TypeAdapter(list[models.RoleEntryModel])
+                return ta.validate_json(data)
 
-                error = models.ErrorModel.model_validate_json(data)
-                raise ValueError(error.error)
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
+    async def list_user_sessions(self, user_id: UUID) -> list[models.UserSessionModel]:
+        headers = await self._get_request_headers()
+        url = self._endpoints.get_user_sessions(user_id)
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.get(url) as response:
+                data = await self._handle_failed_response(response)
+                ta = TypeAdapter(list[models.UserSessionModel])
+                return ta.validate_json(data)
 
-    async def set_user_role(self, user_id: str, role: models.RoleEntryModel) -> None:
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
+    async def set_user_role(self, user_id: UUID, role: models.RoleEntryModel) -> None:
         headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
-        # TODO: Payload here is just `id` and `name`
-        payload = [role.model_dump()]
+        payload = [{"id": str(role.id), "name": role.name}]
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
-                if not response.ok:
-                    data = await response.text()
-                    error = models.ErrorModel.model_validate_json(data)
-                    raise ValueError(error.error)
+                await self._handle_failed_response(response)
 
-    async def remove_user_role(self, user_id: str, role: models.RoleEntryModel) -> None:
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
+    async def remove_user_role(self, user_id: UUID, role: models.RoleEntryModel) -> None:
         headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
-        # TODO: Payload here is just `id` and `name`
-        payload = [role.model_dump()]
+        payload = [{"id": str(role.id), "name": role.name}]
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.delete(url, json=payload) as response:
-                if not response.ok:
-                    data = await response.text()
-                    error = models.ErrorModel.model_validate_json(data)
-                    raise ValueError(error.error)
+                await self._handle_failed_response(response)
 
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
     async def reset_password(self, user_id: str, password: str) -> None:
         """
         Reset user's password by `user_id`. Don't forget to verify old password beforehand.
@@ -163,9 +178,7 @@ class KeycloackClient:
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, json=payload) as response:
-                if not response.ok:
-                    json_body = await response.json()
-                    raise ValueError(json_body)
+                await self._handle_failed_response(response)
 
     async def authenticate(self, username: str, password: str) -> models.TokenModel:
         payload = {
@@ -180,13 +193,42 @@ class KeycloackClient:
         url = (await self._get_endpoints()).oidc_token()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, data=payload) as response:
-                # 'error': 'invalid_grant', 'error_description': 'Invalid user credentials'
-                if not response.ok:
-                    json_body: dict = await response.json()
-                    raise ValueError(json_body["error"])
+                data = await self._handle_failed_response(response)
+                return models.TokenModel.model_validate_json(data)
 
-                raw = await response.text()
-                return models.TokenModel.model_validate_json(raw)
+    async def user_token_introspect(self, token: str) -> bool:
+        payload = {
+            "client_id": self._settings.client,
+            "client_secret": self._settings.secret,
+            "token": token,
+        }
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        url = (await self._get_endpoints()).oidc_introspect()
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.post(url, data=payload) as response:
+                data = await self._handle_failed_response(response)
+                value = json.loads(data)
+                return value["active"]
+
+    async def user_logout(self, refresh_token: str) -> None:
+        payload = {
+            "client_id": self._settings.client,
+            "client_secret": self._settings.secret,
+            "refresh_token": refresh_token,
+        }
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        url = (await self._get_endpoints()).oidc_logout()
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.post(url, data=payload) as response:
+                await self._handle_failed_response(response)
+
+    @backoff.on_exception(backoff.expo, NotAuthorizedError, max_tries=2)
+    async def user_logout_all(self, user_id: UUID) -> None:
+        headers = await self._get_request_headers()
+        url = self._endpoints.delete_user_sessions(user_id)
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.post(url) as response:
+                await self._handle_failed_response(response)
 
     async def refresh(self, refresh_token: str) -> models.TokenModel:
         payload = {
@@ -201,18 +243,14 @@ class KeycloackClient:
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, data=payload) as response:
                 # 'error': 'invalid_grant', 'error_description': 'Invalid user credentials'
-                if not response.ok:
-                    json_body: dict = await response.json()
-                    raise ValueError(json_body["error"])
-
-                raw = await response.text()
-                return models.TokenModel.model_validate_json(raw)
+                data = await self._handle_failed_response(response)
+                return models.TokenModel.model_validate_json(data)
 
     async def _get_request_headers(self) -> dict:
         return {"Authorization": await self._get_auth_header_value(), "Content-Type": "application/json"}
 
     async def _get_auth_header_value(self, throw_if_empty: bool = False) -> str:
-        if self._access_token:
+        if self._access_token and self._has_valid_token():
             return f"{self._access_token.token_type} {self._access_token.access_token}"
 
         if throw_if_empty:
@@ -220,6 +258,15 @@ class KeycloackClient:
 
         await self._auth()
         return await self._get_auth_header_value(True)
+
+    def _has_valid_token(self) -> bool:
+        if self._access_token and self._access_token_issued:
+            now = datetime.datetime.now()
+            past = (now - self._access_token_issued).total_seconds()
+            SEC_ALLOW = 2
+            return past < self._access_token.expires_in - SEC_ALLOW
+
+        return False
 
     async def discovery(self) -> None:
         url = self._endpoints.oidc_discovery()
@@ -242,15 +289,14 @@ class KeycloackClient:
         }
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, data=payload) as response:
-                data = await response.text()
-                if response.ok:
+                try:
+                    data = await self._handle_failed_response(response)
                     self._access_token_issued = datetime.datetime.now()
                     self._access_token = models.TokenModel.model_validate_json(data)
-                else:
+                except Exception:
                     self._access_token_issued = None
                     self._access_token = None
-                    error = models.ErrorModel.model_validate_json(data)
-                    raise ValueError(error.error)
+                    raise
 
     async def _get_endpoints(self) -> KeycloakEndpoints:
         if not self._endpoints.oidc_has_discovery():
@@ -276,6 +322,22 @@ class KeycloackClient:
                     return cast(str, self._client_id)
 
                 raise ValueError(data["error"])
+
+    async def _handle_failed_response(self, response: aiohttp.ClientResponse) -> str:
+        data = await response.text()
+        if response.ok:
+            return data
+
+        if response.status == 401:
+            self._access_token = None
+            self._access_token_issued = None
+            raise NotAuthorizedError()
+
+        # if "errorMessage" in data:
+        # raise ValueError(data["errorMessage"])
+
+        error = models.ErrorModel.model_validate_json(data)
+        raise ValueError(error.error)
 
 
 @lru_cache()

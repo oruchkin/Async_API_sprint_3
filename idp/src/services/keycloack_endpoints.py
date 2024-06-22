@@ -28,6 +28,18 @@ class KeycloakEndpoints:
 
         raise ValueError("Run discovery first")
 
+    def oidc_logout(self) -> str:
+        if self._oidc_endpoints:
+            return self._oidc_endpoints["end_session_endpoint"]
+
+        raise ValueError("Run discovery first")
+
+    def oidc_introspect(self) -> str:
+        if self._oidc_endpoints:
+            return self._oidc_endpoints["introspection_endpoint"]
+
+        raise ValueError("Run discovery first")
+
     def oidc_userinfo(self) -> str:
         if self._oidc_endpoints:
             return self._oidc_endpoints["userinfo_endpoint"]
@@ -49,7 +61,16 @@ class KeycloakEndpoints:
     def reset_user_password(self, user_id: str) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
 
+    def get_user_sessions(self, user_id: UUID) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/sessions"
+
+    def delete_user_sessions(self, user_id: UUID) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/logout"
+
     def single_role(self, role_id: UUID) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/roles-by-id/{role_id}"
+
+    def get_role_with_id(self, role_id: UUID) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/roles-by-id/{role_id}"
 
     def roles(self, id: str) -> str:
@@ -58,7 +79,7 @@ class KeycloakEndpoints:
         """
         return f"{self._settings.url}/admin/realms/{self._realm}/clients/{id}/roles"
 
-    def set_user_role(self, user_id: str, client_id: str) -> str:
+    def set_user_role(self, user_id: UUID, client_id: str) -> str:
         """
         id of the client (UUID, not client_id)
         """

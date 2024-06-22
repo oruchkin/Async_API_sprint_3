@@ -48,3 +48,49 @@ async def delete_role(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> None:
     await keycloak.delete_role(role_id)
+
+
+@router.put(
+    "/{role_id}",
+    response_model=None,
+    summary="Modify role by id",
+    description="Returns modified role",
+)
+async def modify_role(
+    role_id: UUID,
+    model: schemas.RoleModify,
+    keycloak: KeycloackClient = Depends(get_keycloak_service),
+) -> schemas.Role:
+    role = await keycloak.get_role(role_id)
+    role.description = model.description
+    await keycloak.modify_role(role)
+    return schemas.Role.model_validate(role)
+
+
+@router.post(
+    "/{role_id}/users",
+    summary="Assign role to users by id",
+    description="Do not return anything",
+)
+async def assign_role_to_users(
+    role_id: UUID,
+    assign_model: schemas.RoleAssign,
+    keycloak: KeycloackClient = Depends(get_keycloak_service),
+) -> None:
+    role = await keycloak.get_role(role_id)
+    for user in assign_model.users:
+        await keycloak.set_user_role(user, role)
+
+
+@router.delete(
+    "/{role_id}/users/{user_id}",
+    summary="remove role from user",
+    description="Do not return anything",
+)
+async def delete_role_for_user(
+    role_id: UUID,
+    user_id: UUID,
+    keycloak: KeycloackClient = Depends(get_keycloak_service),
+) -> None:
+    role = await keycloak.get_role(role_id)
+    await keycloak.remove_user_role(user_id, role)

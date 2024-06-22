@@ -6,7 +6,7 @@ class UserEntryModel(BaseModel):
 
     id: str
     username: str
-    email: str
+    email: str | None = None
     emailVerified: bool
     createdTimestamp: int
     enabled: bool
