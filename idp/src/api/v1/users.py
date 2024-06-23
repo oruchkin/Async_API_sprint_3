@@ -1,9 +1,9 @@
 from typing import Any
 from uuid import UUID
 
-import api.v1.schemas as schemas
+import src.api.v1.schemas as schemas
 from fastapi import APIRouter, Depends
-from services.keycloak_client import KeycloackClient, get_keycloak_service
+from src.services.keycloak_client import KeycloackClient, get_keycloak_service
 
 router = APIRouter()
 
@@ -30,6 +30,7 @@ async def user_introspect_token(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> schemas.TokenIntrospection:
     token = ""  # TODO: token from the header
+    # TODO: Токен был выдан легитимным клиентом.Токен не истек.Токен не был отозван или аннулирован.
     is_valid = await keycloak.user_token_introspect(token)
     return schemas.TokenIntrospection(valid=is_valid)
 
@@ -81,6 +82,7 @@ async def reset_password(
     reset: schemas.ResetPassword,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> None:
+    # TODO: FIX THIS
     raise ValueError("We need user id from token")
     await keycloak.reset_password("user-id", reset.password)
 

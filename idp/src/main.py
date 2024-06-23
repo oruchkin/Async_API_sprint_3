@@ -2,6 +2,9 @@ import uvicorn
 from api.v1 import index, roles, users
 from core.lifecycle import lifespan
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(
     title="Identity Provider API",

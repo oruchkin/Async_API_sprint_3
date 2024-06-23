@@ -1,8 +1,8 @@
 from uuid import UUID
 
-import api.v1.schemas as schemas
+import src.api.v1.schemas as schemas
 from fastapi import APIRouter, Depends
-from services.keycloak_client import KeycloackClient, get_keycloak_service
+from src.services.keycloak_client import KeycloackClient, get_keycloak_service
 
 router = APIRouter()
 

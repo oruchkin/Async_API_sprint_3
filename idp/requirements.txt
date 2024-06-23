@@ -3,3 +3,6 @@ fastapi~=0.111.0
 uvicorn~=0.29.0
 jwcrypto~=1.5.6
 backoff~=2.2.1
+urllib3
+pydantic-settings
+python-dotenv

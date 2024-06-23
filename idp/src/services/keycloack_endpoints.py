@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from core.settings import KeycloakSettings
+from src.core.settings import KeycloakSettings
 
 
 class KeycloakEndpoints:

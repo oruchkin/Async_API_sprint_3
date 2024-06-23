@@ -52,12 +52,18 @@ Setup all the environment variables and run
 ```
 docker compose --profile idp-dev up --attach keycloak
 ```
+1) руками создать в базе данных базу ```idp```
 
 ### Setup client
 From https://medium.com/@imsanthiyag/introduction-to-keycloak-admin-api-44beb9011f7d
-Go to Clients, on the Clients list tab select admin-cli and in Capability config set `Client authentication` to On. Also check `Service accounts roles`.
-After hitting Save you must see new Credentials tab on the top. Switch to that tab and copy Client secret value.
-Important step. To perform specific operations like create users client must have roles assigned. Click on the `admin-cli` client, then open `Service accounts roles` tab
+- Go to Clients, on the Clients list tab select admin-cli and in Capability config set `Client authentication` to On. 
+- Also check `Service accounts roles`.
+- After hitting Save you must see new Credentials tab on the top.
+- Switch to that tab and copy Client secret value.
+
+
+- Important step: To perform specific operations like create users client must have roles assigned. 
+- Click on the `admin-cli` client, then open `Service accounts roles` tab
 and assign `manage-users` role from the `master-realm`.
 ![screenshot](readme/keycloak/client-assign-role.png)
 

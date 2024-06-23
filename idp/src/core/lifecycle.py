@@ -1,10 +1,10 @@
 import logging.config
 from contextlib import asynccontextmanager
 
-from core.settings import KeycloakSettings
+from src.core.settings import KeycloakSettings
 from fastapi import FastAPI
 from jwcrypto.jwt import JWT
-from services.keycloak_client import KeycloackClient
+from src.services.keycloak_client import KeycloackClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,9 @@ async def lifespan(app: FastAPI):
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
     provider = JWT()
     provider.deserialize(token, key=None)
+    print("provider.token")
     print(provider.token)
+
 
     # settings = KeycloakSettings()
     # client = KeycloackClient(settings)

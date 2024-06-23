@@ -6,11 +6,11 @@ from uuid import UUID
 
 import aiohttp
 import backoff
-import models
-from core.settings import KeycloakSettings
+import src.models as models
+from src.core.settings import KeycloakSettings
 from pydantic import TypeAdapter
-from services.keycloack_endpoints import KeycloakEndpoints
-from services.not_authorized_error import NotAuthorizedError
+from src.services.keycloack_endpoints import KeycloakEndpoints
+from src.services.not_authorized_error import NotAuthorizedError
 
 
 class KeycloackClient:
@@ -343,5 +343,9 @@ class KeycloackClient:
 @lru_cache()
 def get_keycloak_service() -> KeycloackClient:
     settings = KeycloakSettings()
+    print("oleg")
+    print(settings.url)
+    print(settings.secret)
+    print(settings.client)
     client = KeycloackClient(settings)
     return client
