@@ -7,10 +7,10 @@ from uuid import UUID
 import aiohttp
 import backoff
 import src.models as models
-from src.core.settings import KeycloakSettings
+from core.settings import KeycloakSettings
 from pydantic import TypeAdapter
-from src.services.keycloack_endpoints import KeycloakEndpoints
-from src.services.not_authorized_error import NotAuthorizedError
+from services.keycloack_endpoints import KeycloakEndpoints
+from services.not_authorized_error import NotAuthorizedError
 
 
 class KeycloackClient:
@@ -306,6 +306,7 @@ class KeycloackClient:
 
     async def _get_client_id(self) -> str:
         if self._client_id:
+            # TODO
             return self._client_id
 
         # TODO: Current approach is wrong as it requires too many permissions

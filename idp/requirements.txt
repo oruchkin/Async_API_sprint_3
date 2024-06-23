@@ -6,3 +6,4 @@ backoff~=2.2.1
 urllib3
 pydantic-settings
 python-dotenv
+python-jose
