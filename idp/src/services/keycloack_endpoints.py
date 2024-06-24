@@ -46,6 +46,17 @@ class KeycloakEndpoints:
 
         raise ValueError("Run discovery first")
 
+    def oidc_jwks(self) -> str:
+        """
+        The JSON Web Key Set (JWKS) is a set of keys containing the public keys
+        used to verify any JSON Web Token (JWT) issued by the Authorization Server
+        and signed using the RS256 signing algorithm.
+        """
+        if self._oidc_endpoints:
+            return self._oidc_endpoints["jwks_uri"]
+
+        raise ValueError("Run discovery first")
+
     def list_users(self) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
 

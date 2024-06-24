@@ -1,9 +1,10 @@
+import json
 import logging.config
 from contextlib import asynccontextmanager
 
 from core.settings import KeycloakSettings
 from fastapi import FastAPI
-from jwcrypto.jwt import JWT
+from jwcrypto.jwt import JWS, JWT, JWKSet
 from services.keycloak_client import KeycloackClient
 
 logger = logging.getLogger(__name__)
@@ -16,13 +17,19 @@ async def lifespan(app: FastAPI):
     Запускается при старте и закрывает соединения при завершении работы приложения.
     """
 
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-    provider = JWT()
-    provider.deserialize(token, key=None)
-    print(provider.token)
+    settings = KeycloakSettings()
+    client = KeycloackClient(settings)
+    token = await client.authenticate("jonny4@example.com", "sample-password123")
+    jwks = await client.oidc_jwks_raw()
 
-    # settings = KeycloakSettings()
-    # client = KeycloackClient(settings)
+    provider = JWT()
+    provider.deserialize(token.access_token, key=None)
+    if isinstance(provider.token, JWS) and isinstance(provider.token.jose_header, dict):
+        set = JWKSet.from_json(json.dumps(jwks))
+        provider.token.verify(set)
+        print(provider.token.verifylog)
+
+    print("Blablabla")
     # # testing Keycloak client
     # # await client.create_role("blablabla")
     # users = await client.list_users()

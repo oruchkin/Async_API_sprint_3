@@ -268,18 +268,31 @@ class KeycloackClient:
 
         return False
 
-    async def discovery(self) -> None:
+    async def oidc_discovery(self) -> None:
         url = self._endpoints.oidc_discovery()
         async with aiohttp.ClientSession(timeout=self._timeout) as session:
             async with session.get(url) as response:
                 json_body = await response.json()
                 self._endpoints.oidc_set_discovery(json_body)
 
-    async def _auth(self) -> None:
-        if not self._endpoints.oidc_has_discovery():
-            await self.discovery()
+    async def oidc_jwks(self) -> models.JWKSModel:
+        endpoints = await self._get_endpoints()
+        url = endpoints.oidc_jwks()
+        async with aiohttp.ClientSession(timeout=self._timeout) as session:
+            async with session.get(url) as response:
+                data = await response.text()
+                return models.JWKSModel.model_validate_json(data)
 
-        url = self._endpoints.oidc_token()
+    async def oidc_jwks_raw(self) -> dict:
+        endpoints = await self._get_endpoints()
+        url = endpoints.oidc_jwks()
+        async with aiohttp.ClientSession(timeout=self._timeout) as session:
+            async with session.get(url) as response:
+                return await response.json()
+
+    async def _auth(self) -> None:
+        endpoints = await self._get_endpoints()
+        url = endpoints.oidc_token()
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         payload = {
             "scope": "openid profile roles",
@@ -300,7 +313,7 @@ class KeycloackClient:
 
     async def _get_endpoints(self) -> KeycloakEndpoints:
         if not self._endpoints.oidc_has_discovery():
-            await self.discovery()
+            await self.oidc_discovery()
 
         return self._endpoints
 
