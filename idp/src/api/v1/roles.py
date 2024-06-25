@@ -1,8 +1,11 @@
 from uuid import UUID
 
 import api.v1.schemas as schemas
+import services.errors as errors
 from fastapi import APIRouter, Depends
 from services.keycloak_client import KeycloackClient, get_keycloak_service
+
+from .utils import handle_keycloak_error
 
 router = APIRouter()
 
@@ -31,10 +34,13 @@ async def create_role(
     model: schemas.CreateRole,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> schemas.Role:
-    await keycloak.create_role(model.name, model.description)
-    roles = await keycloak.list_roles()
-    role = next(r for r in roles if r.name == model.name)
-    return schemas.Role.model_validate(role)
+    try:
+        await keycloak.create_role(model.name, model.description)
+        roles = await keycloak.list_roles()
+        role = next(r for r in roles if r.name == model.name)
+        return schemas.Role.model_validate(role)
+    except errors.KeycloakError as e:
+        raise handle_keycloak_error(e)
 
 
 @router.delete(
@@ -47,7 +53,10 @@ async def delete_role(
     role_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> None:
-    await keycloak.delete_role(role_id)
+    try:
+        await keycloak.delete_role(role_id)
+    except errors.KeycloakError as e:
+        raise handle_keycloak_error(e)
 
 
 @router.put(
@@ -61,10 +70,13 @@ async def modify_role(
     model: schemas.RoleModify,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> schemas.Role:
-    role = await keycloak.get_role(role_id)
-    role.description = model.description
-    await keycloak.modify_role(role)
-    return schemas.Role.model_validate(role)
+    try:
+        role = await keycloak.get_role(role_id)
+        role.description = model.description
+        await keycloak.modify_role(role)
+        return schemas.Role.model_validate(role)
+    except errors.KeycloakError as e:
+        raise handle_keycloak_error(e)
 
 
 @router.post(
@@ -92,5 +104,8 @@ async def delete_role_for_user(
     user_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> None:
-    role = await keycloak.get_role(role_id)
-    await keycloak.remove_user_role(user_id, role)
+    try:
+        role = await keycloak.get_role(role_id)
+        await keycloak.remove_user_role(user_id, role)
+    except errors.KeycloakError as e:
+        raise handle_keycloak_error(e)
