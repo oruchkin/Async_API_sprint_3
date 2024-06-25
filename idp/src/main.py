@@ -1,7 +1,11 @@
 import uvicorn
-from api.v1 import roles, users
+from api.v1 import roles, users, index
 from core.lifecycle import lifespan
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = FastAPI(
     title="Identity Provider API",
@@ -12,6 +16,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(index.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
 

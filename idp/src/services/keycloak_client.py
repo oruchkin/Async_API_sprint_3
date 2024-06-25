@@ -356,7 +356,8 @@ class KeycloackClient:
 
         raise errors.ValidationError(error)
 
-    def _get_error_message(self, data: dict) -> str:
+    @staticmethod
+    def _get_error_message(data: dict) -> str:
         if "errorMessage" in data:
             return data["errorMessage"]
 
@@ -364,6 +365,20 @@ class KeycloackClient:
             return data["error"]
 
         return "Failed"
+
+    async def get_realm_public_key(self) -> str:
+        url = f"{self._settings.url}/admin/realms/master/keys"
+        headers = await self._get_request_headers()
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.get(url, headers=headers) as response:
+                data = await self._handle_failed_response(response)
+                for key in data.get("keys", []):
+
+                    if key.get("algorithm") == "RS256" and key.get("type") == "RSA" and key.get("use") == "SIG":
+                        print("я тут")
+
+                        return f"-----BEGIN PUBLIC KEY-----\n{key.get('publicKey')}\n-----END PUBLIC KEY-----"
+                raise ValueError("RS256 public key not found")
 
 
 @lru_cache()
