@@ -1,9 +1,11 @@
-from typing import Any
 from uuid import UUID
 
 import api.v1.schemas as schemas
+import services.errors as errors
 from fastapi import APIRouter, Depends
 from services.keycloak_client import KeycloackClient, get_keycloak_service
+
+from .utils import handle_keycloak_error
 
 router = APIRouter()
 
@@ -120,9 +122,12 @@ async def get_user_roles(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> list[schemas.Role]:
     # TODO: Check if admin
-    roles = await keycloak.list_user_roles(user_id)
-    mapped = [schemas.Role.model_validate(role) for role in roles]
-    return mapped
+    try:
+        roles = await keycloak.list_user_roles(user_id)
+        mapped = [schemas.Role.model_validate(role) for role in roles]
+        return mapped
+    except errors.KeycloakError as e:
+        raise handle_keycloak_error(e)
 
 
 @router.get(
