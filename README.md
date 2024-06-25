@@ -61,5 +61,8 @@ Important step. To perform specific operations like create users client must hav
 and assign `manage-users` role from the `master-realm`.
 ![screenshot](readme/keycloak/client-assign-role.png)
 
+Also we need `manage-clients` role to add roles for current client.
+And `view-clients` to get id of the current client.
+
 ### Tips
 Open Dev tab in browser to see what requests Keycloak UI is sending to the API
