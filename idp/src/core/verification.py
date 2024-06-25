@@ -5,10 +5,15 @@ from jwcrypto.jwt import JWS, JWT, JWKSet
 from services.keycloak_client import KeycloackClient
 
 
-async def verify_token(client: KeycloackClient, access_token: str) -> dict:
+async def verify_token(client: KeycloackClient, access_token: str, strict: bool = False) -> dict:
     """
     Verifies access token and returns claims in verification passed
     """
+    if strict:
+        # TODO: Check if it works
+        if not await client.user_token_introspect(access_token):
+            raise ValueError("Verification failed")
+
     jws = JWT(jwt=access_token).token
 
     jwks = await client.oidc_jwks_raw()
