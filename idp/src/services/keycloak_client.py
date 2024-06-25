@@ -14,8 +14,6 @@ from services.not_authorized_error import NotAuthorizedError
 
 
 class KeycloackClient:
-    # TODO: Verify token expiration
-    # (dt2 - dt1).total_seconds()
     _access_token: models.TokenModel | None = None
     _access_token_issued: datetime.datetime | None = None
     _client_id: str | None = None
@@ -24,6 +22,10 @@ class KeycloackClient:
         self._settings = settings
         self._endpoints = KeycloakEndpoints(settings)
         self._timeout = aiohttp.ClientTimeout(total=None, sock_connect=5, sock_read=5)
+
+    @property
+    def client_id(self) -> str:
+        return self._settings.client
 
     async def get_role(self, role_id: UUID) -> models.RoleEntryModel:
         headers = await self._get_request_headers()

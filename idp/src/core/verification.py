@@ -30,11 +30,13 @@ async def verify_token(client: KeycloackClient, access_token: str) -> dict:
         raise ValueError("Token payload is not verified")
 
     payload = json.loads(jws.payload)
+
     # verify issuer
     issuer = await client.oidc_issuer()
     if payload["iss"] != issuer:
         raise ValueError("Wrong issuer")
 
+    # verify expiration
     now = datetime.now(UTC).timestamp()
     exp = payload["exp"]
     if not exp:
@@ -42,5 +44,9 @@ async def verify_token(client: KeycloackClient, access_token: str) -> dict:
 
     if exp < now:
         raise ValueError("Token has expired")
+
+    # This verification is optional and not part of OAuth
+    if payload["azp"] != client.client_id:
+        raise ValueError("Wrong client id")
 
     return payload
