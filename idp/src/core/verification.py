@@ -1,0 +1,46 @@
+import json
+from datetime import UTC, datetime
+
+from jwcrypto.jwt import JWS, JWT, JWKSet
+from services.keycloak_client import KeycloackClient
+
+
+async def verify_token(client: KeycloackClient, access_token: str) -> dict:
+    """
+    Verifies access token and returns claims in verification passed
+    """
+    jws = JWT(jwt=access_token).token
+
+    jwks = await client.oidc_jwks_raw()
+
+    # check if token has signature and was decoded
+    if not isinstance(jws, JWS):
+        raise ValueError("Signed token expected")
+
+    if isinstance(jws.jose_header, dict):
+        # verify signature
+        set = JWKSet.from_json(json.dumps(jwks))
+        jws.verify(set)
+        if not jws.verifylog or jws.verifylog[0] != "Success":
+            raise ValueError("Signiture failed")
+    else:
+        raise ValueError("Failed to decode signing info")
+
+    if not jws.payload:
+        raise ValueError("Token payload is not verified")
+
+    payload = json.loads(jws.payload)
+    # verify issuer
+    issuer = await client.oidc_issuer()
+    if payload["iss"] != issuer:
+        raise ValueError("Wrong issuer")
+
+    now = datetime.now(UTC).timestamp()
+    exp = payload["exp"]
+    if not exp:
+        raise ValueError("Expiration not set")
+
+    if exp < now:
+        raise ValueError("Token has expired")
+
+    return payload

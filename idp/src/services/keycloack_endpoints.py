@@ -16,6 +16,12 @@ class KeycloakEndpoints:
     def oidc_discovery(self) -> str:
         return f"{self._settings.url}/realms/{self._realm}/.well-known/openid-configuration"
 
+    def oidc_description(self) -> dict:
+        if self._oidc_endpoints:
+            return self._oidc_endpoints
+
+        raise ValueError("Run discovery first")
+
     def oidc_has_discovery(self) -> bool:
         return self._oidc_endpoints is not None
 

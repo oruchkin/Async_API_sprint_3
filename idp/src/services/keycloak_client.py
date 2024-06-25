@@ -275,6 +275,7 @@ class KeycloackClient:
                 json_body = await response.json()
                 self._endpoints.oidc_set_discovery(json_body)
 
+    # TODO: Use ttl_cache here
     async def oidc_jwks(self) -> models.JWKSModel:
         endpoints = await self._get_endpoints()
         url = endpoints.oidc_jwks()
@@ -282,6 +283,10 @@ class KeycloackClient:
             async with session.get(url) as response:
                 data = await response.text()
                 return models.JWKSModel.model_validate_json(data)
+
+    async def oidc_issuer(self) -> str:
+        endpoints = await self._get_endpoints()
+        return endpoints.oidc_description()["issuer"]
 
     async def oidc_jwks_raw(self) -> dict:
         endpoints = await self._get_endpoints()

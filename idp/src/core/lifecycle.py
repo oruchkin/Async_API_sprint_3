@@ -1,10 +1,9 @@
-import json
 import logging.config
 from contextlib import asynccontextmanager
 
 from core.settings import KeycloakSettings
+from core.verification import verify_token
 from fastapi import FastAPI
-from jwcrypto.jwt import JWS, JWT, JWKSet
 from services.keycloak_client import KeycloackClient
 
 logger = logging.getLogger(__name__)
@@ -19,17 +18,10 @@ async def lifespan(app: FastAPI):
 
     settings = KeycloakSettings()
     client = KeycloackClient(settings)
-    token = await client.authenticate("jonny4@example.com", "sample-password123")
-    jwks = await client.oidc_jwks_raw()
+    token_response = await client.authenticate("jonny4@example.com", "sample-password123")
+    payoad = await verify_token(client, token_response.access_token)
+    print(payoad["email"])
 
-    provider = JWT()
-    provider.deserialize(token.access_token, key=None)
-    if isinstance(provider.token, JWS) and isinstance(provider.token.jose_header, dict):
-        set = JWKSet.from_json(json.dumps(jwks))
-        provider.token.verify(set)
-        print(provider.token.verifylog)
-
-    print("Blablabla")
     # # testing Keycloak client
     # # await client.create_role("blablabla")
     # users = await client.list_users()
