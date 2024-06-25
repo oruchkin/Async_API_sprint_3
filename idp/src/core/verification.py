@@ -9,6 +9,8 @@ async def verify_token(client: KeycloackClient, access_token: str, strict: bool 
     """
     Verifies access token and returns claims in verification passed
     """
+    # TODO: Use OIDC client, we don't need keycloak here
+
     if strict:
         # TODO: Check if it works
         if not await client.user_token_introspect(access_token):
