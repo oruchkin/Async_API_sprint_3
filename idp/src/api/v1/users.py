@@ -1,11 +1,11 @@
 from uuid import UUID
 
 import api.v1.schemas as schemas
-import services.errors as errors
 from fastapi import APIRouter, Depends
 from services.keycloak_client import KeycloackClient, get_keycloak_service
+from services.oidc_client import OIDCClient, get_oidc_service
 
-from .utils import handle_keycloak_error
+from .utils import convert_to_http_error
 
 router = APIRouter()
 
@@ -17,9 +17,9 @@ router = APIRouter()
 )
 async def user_token(
     login: schemas.Login,
-    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    oidc: OIDCClient = Depends(get_oidc_service),
 ) -> schemas.Token:
-    token = await keycloak.authenticate(login.login, login.password)
+    token = await oidc.password_flow(login.login, login.password)
     return schemas.Token.model_validate(token)
 
 
@@ -29,10 +29,10 @@ async def user_token(
     description="Flag indicating if token is valid",
 )
 async def user_introspect_token(
-    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    oidc: OIDCClient = Depends(get_oidc_service),
 ) -> schemas.TokenIntrospection:
     token = ""  # TODO: token from the header
-    is_valid = await keycloak.user_token_introspect(token)
+    is_valid = await oidc.introspect(token)
     return schemas.TokenIntrospection(valid=is_valid)
 
 
@@ -43,9 +43,9 @@ async def user_introspect_token(
 )
 async def user_logout(
     token: schemas.RefreshToken,
-    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    oidc: OIDCClient = Depends(get_oidc_service),
 ) -> None:
-    await keycloak.user_logout(token.refresh_token)
+    await oidc.logout(token.refresh_token)
 
 
 @router.post(
@@ -68,9 +68,9 @@ async def user_logout_all(
 )
 async def user_token_refresh(
     token: schemas.RefreshToken,
-    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    oidc: OIDCClient = Depends(get_oidc_service),
 ) -> schemas.Token:
-    access_token = await keycloak.refresh(token.refresh_token)
+    access_token = await oidc.refresh(token.refresh_token)
     return schemas.Token.model_validate(access_token)
 
 
@@ -126,8 +126,8 @@ async def get_user_roles(
         roles = await keycloak.list_user_roles(user_id)
         mapped = [schemas.Role.model_validate(role) for role in roles]
         return mapped
-    except errors.KeycloakError as e:
-        raise handle_keycloak_error(e)
+    except Exception as e:
+        raise convert_to_http_error(e)
 
 
 @router.get(

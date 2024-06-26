@@ -8,8 +8,11 @@ import backoff
 import models
 import services.errors as errors
 from core.settings import KeycloakSettings
+from fastapi import Depends
 from pydantic import TypeAdapter
 from services.keycloack_endpoints import KeycloakEndpoints
+
+from .oidc_client import OIDCClient, get_oidc_service
 
 
 class KeycloackClient:
@@ -17,14 +20,11 @@ class KeycloackClient:
     _access_token_issued: datetime.datetime | None = None
     _client_id: str | None = None
 
-    def __init__(self, settings: KeycloakSettings):
+    def __init__(self, settings: KeycloakSettings, endpoints: KeycloakEndpoints, oidc: OIDCClient):
+        self._oidc = oidc
         self._settings = settings
-        self._endpoints = KeycloakEndpoints(settings)
+        self._endpoints = endpoints
         self._timeout = aiohttp.ClientTimeout(total=None, sock_connect=5, sock_read=5)
-
-    @property
-    def client_id(self) -> str:
-        return self._settings.client
 
     async def get_role(self, role_id: UUID) -> models.RoleEntryModel:
         headers = await self._get_request_headers()
@@ -176,47 +176,6 @@ class KeycloackClient:
             async with session.post(url, json=payload) as response:
                 await self._handle_failed_response(response)
 
-    async def authenticate(self, username: str, password: str) -> models.TokenModel:
-        payload = {
-            "client_id": self._settings.client,
-            "client_secret": self._settings.secret,
-            "scope": "openid roles profile",
-            "grant_type": "password",
-            "username": username,
-            "password": password,
-        }
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        url = (await self._get_endpoints()).oidc_token()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, data=payload) as response:
-                data = await self._handle_failed_response(response)
-                return models.TokenModel.model_validate(data)
-
-    async def user_token_introspect(self, token: str) -> bool:
-        payload = {
-            "client_id": self._settings.client,
-            "client_secret": self._settings.secret,
-            "token": token,
-        }
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        url = (await self._get_endpoints()).oidc_introspect()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, data=payload) as response:
-                data = await self._handle_failed_response(response)
-                return data["active"]
-
-    async def user_logout(self, refresh_token: str) -> None:
-        payload = {
-            "client_id": self._settings.client,
-            "client_secret": self._settings.secret,
-            "refresh_token": refresh_token,
-        }
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        url = (await self._get_endpoints()).oidc_logout()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, data=payload) as response:
-                await self._handle_failed_response(response)
-
     @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def user_logout_all(self, user_id: UUID) -> None:
         headers = await self._get_request_headers()
@@ -224,22 +183,6 @@ class KeycloackClient:
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url) as response:
                 await self._handle_failed_response(response)
-
-    async def refresh(self, refresh_token: str) -> models.TokenModel:
-        payload = {
-            "client_id": self._settings.client,
-            "client_secret": self._settings.secret,
-            "scope": "openid roles profile",
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
-        }
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        url = (await self._get_endpoints()).oidc_token()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, data=payload) as response:
-                # 'error': 'invalid_grant', 'error_description': 'Invalid user credentials'
-                data = await self._handle_failed_response(response)
-                return models.TokenModel.model_validate(data)
 
     async def _get_request_headers(self) -> dict:
         return {"Authorization": await self._get_auth_header_value(), "Content-Type": "application/json"}
@@ -266,58 +209,17 @@ class KeycloackClient:
 
         return False
 
-    async def oidc_discovery(self) -> None:
-        url = self._endpoints.oidc_discovery()
-        async with aiohttp.ClientSession(timeout=self._timeout) as session:
-            async with session.get(url) as response:
-                json_body = await response.json()
-                self._endpoints.oidc_set_discovery(json_body)
-
-    # TODO: Use ttl_cache here
-    async def oidc_jwks(self) -> models.JWKSModel:
-        endpoints = await self._get_endpoints()
-        url = endpoints.oidc_jwks()
-        async with aiohttp.ClientSession(timeout=self._timeout) as session:
-            async with session.get(url) as response:
-                data = await response.text()
-                return models.JWKSModel.model_validate_json(data)
-
-    async def oidc_issuer(self) -> str:
-        endpoints = await self._get_endpoints()
-        return endpoints.oidc_description()["issuer"]
-
-    async def oidc_jwks_raw(self) -> dict:
-        endpoints = await self._get_endpoints()
-        url = endpoints.oidc_jwks()
-        async with aiohttp.ClientSession(timeout=self._timeout) as session:
-            async with session.get(url) as response:
-                return await response.json()
-
     async def _auth(self) -> None:
-        endpoints = await self._get_endpoints()
-        url = endpoints.oidc_token()
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        payload = {
-            "scope": "openid profile roles",
-            "grant_type": "client_credentials",
-            "client_id": self._settings.client,
-            "client_secret": self._settings.secret,
-        }
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, data=payload) as response:
-                try:
-                    data = await self._handle_failed_response(response)
-                    self._access_token_issued = datetime.datetime.now()
-                    self._access_token = models.TokenModel.model_validate(data)
-                except Exception:
-                    self._access_token_issued = None
-                    self._access_token = None
-                    raise
+        try:
+            token = await self._oidc.client_credentials_flow()
+            self._access_token_issued = datetime.datetime.now()
+            self._access_token = token
+        except Exception:
+            self._access_token_issued = None
+            self._access_token = None
+            raise
 
     async def _get_endpoints(self) -> KeycloakEndpoints:
-        if not self._endpoints.oidc_has_discovery():
-            await self.oidc_discovery()
-
         return self._endpoints
 
     async def _get_client_id(self) -> str:
@@ -367,7 +269,8 @@ class KeycloackClient:
 
 
 @lru_cache()
-def get_keycloak_service() -> KeycloackClient:
+def get_keycloak_service(oidc=Depends(get_oidc_service)) -> KeycloackClient:
     settings = KeycloakSettings()
-    client = KeycloackClient(settings)
+    endpoints = KeycloakEndpoints(settings)
+    client = KeycloackClient(settings, endpoints, oidc)
     return client

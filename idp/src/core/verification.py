@@ -2,36 +2,32 @@ import json
 from datetime import UTC, datetime
 
 from jwcrypto.jwt import JWS, JWT, JWKSet
-from services.keycloak_client import KeycloackClient
+from services.oidc_client import OIDCClient
 
 
-async def verify_token(client: KeycloackClient, access_token: str, strict: bool = False) -> dict:
+async def verify_token(oidc_client: OIDCClient, access_token: str, strict: bool = False) -> dict:
     """
-    Verifies access token and returns claims in verification passed
+    Verifies access token and returns claims if verification passed
     """
-    # TODO: Use OIDC client, we don't need keycloak here
-
     if strict:
         # TODO: Check if it works
-        if not await client.user_token_introspect(access_token):
+        if not await oidc_client.introspect(access_token):
             raise ValueError("Verification failed")
 
-    jws = JWT(jwt=access_token).token
-
-    jwks = await client.oidc_jwks_raw()
-
     # check if token has signature and was decoded
+    jws = JWT(jwt=access_token).token
     if not isinstance(jws, JWS):
         raise ValueError("Signed token expected")
 
-    if isinstance(jws.jose_header, dict):
-        # verify signature
-        set = JWKSet.from_json(json.dumps(jwks))
-        jws.verify(set)
-        if not jws.verifylog or jws.verifylog[0] != "Success":
-            raise ValueError("Signiture failed")
-    else:
+    # verify signature
+    if not isinstance(jws.jose_header, dict):
         raise ValueError("Failed to decode signing info")
+
+    jwks = await oidc_client.jwks_raw()
+    set = JWKSet.from_json(json.dumps(jwks))
+    jws.verify(set)
+    if not jws.verifylog or jws.verifylog[0] != "Success":
+        raise ValueError("Signiture failed")
 
     if not jws.payload:
         raise ValueError("Token payload is not verified")
@@ -39,7 +35,7 @@ async def verify_token(client: KeycloackClient, access_token: str, strict: bool 
     payload = json.loads(jws.payload)
 
     # verify issuer
-    issuer = await client.oidc_issuer()
+    issuer = await oidc_client.issuer()
     if payload["iss"] != issuer:
         raise ValueError("Wrong issuer")
 
@@ -49,11 +45,14 @@ async def verify_token(client: KeycloackClient, access_token: str, strict: bool 
     if not exp:
         raise ValueError("Expiration not set")
 
+    # `iat` (token issued time) can be used with
+    # security incidents, it must be older than last incident
+
     if exp < now:
         raise ValueError("Token has expired")
 
     # This verification is optional and not part of OAuth
-    if payload["azp"] != client.client_id:
+    if payload["azp"] != oidc_client.client_id:
         raise ValueError("Wrong client id")
 
     return payload
