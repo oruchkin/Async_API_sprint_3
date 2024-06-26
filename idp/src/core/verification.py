@@ -13,6 +13,7 @@ async def verify_token(client: KeycloackClient, access_token: str, strict: bool 
 
     if strict:
         # TODO: Check if it works
+        # TODO: посмотреть если он не отозвон и точно ли он
         if not await client.user_token_introspect(access_token):
             raise ValueError("Verification failed")
 

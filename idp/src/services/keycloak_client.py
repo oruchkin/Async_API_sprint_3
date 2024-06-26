@@ -376,6 +376,7 @@ class KeycloackClient:
 
                     if key.get("algorithm") == "RS256" and key.get("type") == "RSA" and key.get("use") == "SIG":
                         print("я тут")
+                        # поиск должен быть по kid
 
                         return f"-----BEGIN PUBLIC KEY-----\n{key.get('publicKey')}\n-----END PUBLIC KEY-----"
                 raise ValueError("RS256 public key not found")

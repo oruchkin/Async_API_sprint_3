@@ -14,6 +14,7 @@ class TokenData(BaseModel):
     exp: Optional[int] = None
     iat: Optional[int] = None
     token_details: Optional[Dict[str, Any]] = None
+    roles: Optional[list[str]] = None
 
 
 security = HTTPBearer()
@@ -32,6 +33,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         public_key = await keycloak.get_realm_public_key()
 
         payload = jwt.decode(token, public_key, algorithms=["RS256"])
+        #TODO за 123 вызвать метод verify_token
+        # payload = 123
         uuid: str = payload.get("sub")
         username: str = payload.get("preferred_username")
         email: str = payload.get("email")
