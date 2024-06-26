@@ -16,13 +16,13 @@ async def lifespan(app: FastAPI):
     Контекстный менеджер для установления соединения с базами данных.
     Запускается при старте и закрывает соединения при завершении работы приложения.
     """
-
-    settings = KeycloakSettings()
-    endpoints = KeycloakEndpoints(settings)
-    oidc = OIDCClient(endpoints.base_url, settings)
-    token_response = await oidc.password_flow("jonny4@example.com", "sample-password123")
-    payoad = await verify_token(oidc, token_response.access_token)
-    print(payoad["email"])
+    #
+    # settings = KeycloakSettings()
+    # endpoints = KeycloakEndpoints(settings)
+    # oidc = OIDCClient(endpoints.base_url, settings)
+    # token_response = await oidc.password_flow("jonny4@example.com", "sample-password123")
+    # payoad = await verify_token(oidc, token_response.access_token)
+    # print(payoad["email"])
 
     # # testing Keycloak client
     # # await client.create_role("blablabla")
