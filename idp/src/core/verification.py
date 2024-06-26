@@ -11,6 +11,7 @@ async def verify_token(oidc_client: OIDCClient, access_token: str, strict: bool 
     """
     if strict:
         # TODO: Check if it works
+        # TODO: посмотреть если он не отозвон и точно ли он
         if not await oidc_client.introspect(access_token):
             raise ValueError("Verification failed")
 

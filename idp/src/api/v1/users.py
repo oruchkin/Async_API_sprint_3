@@ -31,7 +31,7 @@ async def user_token(
 async def user_introspect_token(
     oidc: OIDCClient = Depends(get_oidc_service),
 ) -> schemas.TokenIntrospection:
-    token = ""  # TODO: token from the header
+    token = ""  # TODO: token from the header # TODO: token from the header # low priority
     is_valid = await oidc.introspect(token)
     return schemas.TokenIntrospection(valid=is_valid)
 
@@ -140,7 +140,9 @@ async def get_user_sessions(
     user_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> list[schemas.UserSession]:
-    # TODO: Check if admin or self
+    # TODO: Check if admin
+    # обычному юзеру можно создать свой url
+    # в readme сделать роль Admin обязательной указать как
     sessions = await keycloak.list_user_sessions(user_id)
     mapped = [schemas.UserSession.model_validate(session) for session in sessions]
     return mapped
