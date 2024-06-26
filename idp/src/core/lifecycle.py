@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 from core.settings import KeycloakSettings
 from core.verification import verify_token
 from fastapi import FastAPI
-from services.keycloak_client import KeycloackClient
+from services.keycloack_endpoints import KeycloakEndpoints
+from services.oidc_client import OIDCClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +18,10 @@ async def lifespan(app: FastAPI):
     """
 
     settings = KeycloakSettings()
-    client = KeycloackClient(settings)
-    token_response = await client.authenticate("jonny4@example.com", "sample-password123")
-    payoad = await verify_token(client, token_response.access_token)
+    endpoints = KeycloakEndpoints(settings)
+    oidc = OIDCClient(endpoints.base_url, settings)
+    token_response = await oidc.password_flow("jonny4@example.com", "sample-password123")
+    payoad = await verify_token(oidc, token_response.access_token)
     print(payoad["email"])
 
     # # testing Keycloak client
