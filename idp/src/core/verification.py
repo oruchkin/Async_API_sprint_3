@@ -5,15 +5,10 @@ from jwcrypto.jwt import JWS, JWT, JWKSet
 from services.oidc_client import OIDCClient
 
 
-async def verify_token(oidc_client: OIDCClient, access_token: str, strict: bool = False) -> dict:
+async def verify_token(oidc_client: OIDCClient, access_token: str) -> dict:
     """
     Verifies access token and returns claims if verification passed
     """
-    if strict:
-        # TODO: Check if it works
-        # TODO: посмотреть если он не отозвон и точно ли он
-        if not await oidc_client.introspect(access_token):
-            raise ValueError("Verification failed")
 
     # check if token has signature and was decoded
     jws = JWT(jwt=access_token).token
