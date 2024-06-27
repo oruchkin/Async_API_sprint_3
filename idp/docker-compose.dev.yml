@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    volumes:
+      - dbstorage:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: always
+    env_file: [.env]
+
+  idp:
+    build:
+      context: .
+    ports:
+      - 29543:29543
+    depends_on:
+      - postgres
+    env_file: [.env]
+
+  keycloak:
+    build:
+      context: keycloak
+    ports:
+      - 32546:8080
+    depends_on:
+      - postgres
+    env_file: [.env]
+
+volumes:
+  dbstorage:
+    name: admin-panel-db
+    external: true
