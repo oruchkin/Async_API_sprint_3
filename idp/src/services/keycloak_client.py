@@ -165,7 +165,7 @@ class KeycloackClient:
                 await self._handle_failed_response(response)
 
     @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
-    async def reset_password(self, user_id: str, password: str) -> None:
+    async def reset_password(self, user_id: UUID, password: str) -> None:
         """
         Reset user's password by `user_id`. Don't forget to verify old password beforehand.
         """

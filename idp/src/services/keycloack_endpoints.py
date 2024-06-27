@@ -31,7 +31,7 @@ class KeycloakEndpoints:
         """
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
 
-    def reset_user_password(self, user_id: str) -> str:
+    def reset_user_password(self, user_id: UUID) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/reset-password"
 
     def get_user_sessions(self, user_id: UUID) -> str:

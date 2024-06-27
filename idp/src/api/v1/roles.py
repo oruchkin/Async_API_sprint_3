@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import api.v1.schemas as schemas
+from core.auth import AuthorizationProvider
 from fastapi import APIRouter, Depends
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 
@@ -16,7 +17,7 @@ router = APIRouter()
     description="Returns all roles in the system",
 )
 async def list_roles(
-    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    keycloak: KeycloackClient = Depends(get_keycloak_service), _=Depends(AuthorizationProvider(roles=["admin"]))
 ) -> list[schemas.Role]:
     roles = await keycloak.list_roles()
     mapped = [schemas.Role.model_validate(role) for role in roles]
@@ -32,6 +33,7 @@ async def list_roles(
 async def create_role(
     model: schemas.CreateRole,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> schemas.Role:
     try:
         await keycloak.create_role(model.name, model.description)
@@ -51,6 +53,7 @@ async def create_role(
 async def delete_role(
     role_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> None:
     try:
         await keycloak.delete_role(role_id)
@@ -68,6 +71,7 @@ async def modify_role(
     role_id: UUID,
     model: schemas.RoleModify,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> schemas.Role:
     try:
         role = await keycloak.get_role(role_id)
@@ -87,6 +91,7 @@ async def assign_role_to_users(
     role_id: UUID,
     assign_model: schemas.RoleAssign,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> None:
     role = await keycloak.get_role(role_id)
     for user in assign_model.users:
@@ -102,6 +107,7 @@ async def delete_role_for_user(
     role_id: UUID,
     user_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> None:
     try:
         role = await keycloak.get_role(role_id)

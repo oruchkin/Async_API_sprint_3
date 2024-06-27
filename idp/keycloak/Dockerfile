@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:latest
+FROM quay.io/keycloak/keycloak:25.0.1
 
 # Setting the build parameter for the database:
 ENV KC_DB=postgres

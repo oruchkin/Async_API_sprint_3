@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 
 import aiohttp
@@ -138,13 +139,16 @@ class OIDCClient:
         return self._discovery_data
 
     async def _ensure_ok_response(self, response: aiohttp.ClientResponse) -> dict:
-        data = await response.json()
+        # some endpoints do not return anything
+        raw = await response.text()
         if response.ok:
-            return data
+            return json.loads(raw) if raw else {}
 
+        # Possible error response:
         # 'error': 'unauthorized_client'
         # 'error_description': 'Invalid client or Invalid client credentials'
 
+        data = json.loads(raw)
         message = data.get("error_description", "Failed")
         if response.status == 401:
             raise errors.NotAuthorizedError(message)

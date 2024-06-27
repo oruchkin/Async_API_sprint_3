@@ -1,13 +1,20 @@
 from uuid import UUID
 
 import api.v1.schemas as schemas
+from core.auth import AuthorizationProvider, TokenData, bearer_security
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 from services.oidc_client import OIDCClient, get_oidc_service
 
 from .utils import convert_to_http_error
 
 router = APIRouter()
+
+
+@router.get("/me")
+async def protected_route(user: TokenData = Depends(AuthorizationProvider(is_strict=True))):
+    return user.model_dump()
 
 
 @router.post(
@@ -29,23 +36,32 @@ async def user_token(
     description="Flag indicating if token is valid",
 )
 async def user_introspect_token(
-    oidc: OIDCClient = Depends(get_oidc_service),
+    oidc: OIDCClient = Depends(get_oidc_service), bearer: HTTPAuthorizationCredentials = Depends(bearer_security)
 ) -> schemas.TokenIntrospection:
-    token = ""  # TODO: token from the header # TODO: token from the header # low priority
-    is_valid = await oidc.introspect(token)
+    is_valid = await oidc.introspect(bearer.credentials)
     return schemas.TokenIntrospection(valid=is_valid)
 
 
 @router.post(
     "/logout",
-    summary="Logout user from current session",
+    summary="Logout user from the current session",
     description="Doesn't return anything",
 )
 async def user_logout(
-    token: schemas.RefreshToken,
-    oidc: OIDCClient = Depends(get_oidc_service),
+    token: schemas.RefreshToken, oidc: OIDCClient = Depends(get_oidc_service), _=Depends(AuthorizationProvider())
 ) -> None:
     await oidc.logout(token.refresh_token)
+
+
+@router.post(
+    "/logout/all",
+    summary="Logout user from all sessions",
+    description="Doesn't return anything",
+)
+async def user_logout_me_all(
+    keycloak: KeycloackClient = Depends(get_keycloak_service), user: TokenData = Depends(AuthorizationProvider())
+) -> None:
+    await keycloak.user_logout_all(user.user_id)
 
 
 @router.post(
@@ -56,8 +72,8 @@ async def user_logout(
 async def user_logout_all(
     user_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> None:
-    # TODO: Check if self or admin
     await keycloak.user_logout_all(user_id)
 
 
@@ -82,9 +98,9 @@ async def user_token_refresh(
 async def reset_password(
     reset: schemas.ResetPassword,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    user: TokenData = Depends(AuthorizationProvider()),
 ) -> None:
-    raise ValueError("We need user id from token")
-    await keycloak.reset_password("user-id", reset.password)
+    await keycloak.reset_password(user.user_id, reset.password)
 
 
 @router.get(
@@ -95,6 +111,7 @@ async def reset_password(
 )
 async def list_users(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> list[schemas.User]:
     users = await keycloak.list_users()
     mapped = [schemas.User.model_validate(user) for user in users]
@@ -120,8 +137,8 @@ async def create_user(
 async def get_user_roles(
     user_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> list[schemas.Role]:
-    # TODO: Check if admin
     try:
         roles = await keycloak.list_user_roles(user_id)
         mapped = [schemas.Role.model_validate(role) for role in roles]
@@ -131,18 +148,31 @@ async def get_user_roles(
 
 
 @router.get(
+    "/sessions",
+    response_model=list[schemas.UserSession],
+    summary="Get user's own sessions",
+    description="Returns collection of sessions",
+)
+async def get_user_my_sessions(
+    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    user: TokenData = Depends(AuthorizationProvider()),
+) -> list[schemas.UserSession]:
+    sessions = await keycloak.list_user_sessions(user.user_id)
+    mapped = [schemas.UserSession.model_validate(session) for session in sessions]
+    return mapped
+
+
+@router.get(
     "/{user_id}/sessions",
     response_model=list[schemas.UserSession],
-    summary="Get user's sessions",
-    description="Returns user's sessions",
+    summary="Get sessions of the user by user id",
+    description="Returns collection of sessions",
 )
 async def get_user_sessions(
     user_id: UUID,
     keycloak: KeycloackClient = Depends(get_keycloak_service),
+    _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> list[schemas.UserSession]:
-    # TODO: Check if admin
-    # обычному юзеру можно создать свой url
-    # в readme сделать роль Admin обязательной указать как
     sessions = await keycloak.list_user_sessions(user_id)
     mapped = [schemas.UserSession.model_validate(session) for session in sessions]
     return mapped
