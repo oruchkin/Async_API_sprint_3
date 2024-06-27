@@ -5,7 +5,7 @@
 - Написала сервис ```ipd``` для взаимодействия с ```keycloak``` через API
 
 ### Доска на которой мы вели задачи:
-[https://github.com/users/oruchkin/projects/8/](Канбан доска) 
+https://github.com/users/oruchkin/projects/8/ - Канбан доска 
 
 
 ### Как запустить
@@ -16,8 +16,8 @@ docker compose up
 ```
 
 #### Запущеные сервисы - ссылки:
-- [http://localhost:8080/](http://localhost:8080/)  - keycloak 
-- [http://localhost:8000/api/openapi](http://localhost:8000/api/openapi) - документация `swagger` для `idp` 
+- http://localhost:8080/ - keycloak 
+- http://localhost:8000/api/openapi - документация `swagger` для `idp` 
 
 ### 3. Логинимся в админку - заходим в `keycloak`:
 - username - `admin` (данные из `.env.example`)
