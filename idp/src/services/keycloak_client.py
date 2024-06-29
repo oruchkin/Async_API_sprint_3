@@ -104,9 +104,10 @@ class KeycloackClient:
                 return ta.validate_python(data)[0]
 
     @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
-    async def create_user(self, email: str, password: str, username: str | None = None) -> None:
+    async def create_user(self, username: str, email: str, password: str) -> None:
         """
-        Creates new user
+        Creates new user.
+        For Keycloak email is optional field but we need it for future communications.
         """
         # username is required
         payload = {
