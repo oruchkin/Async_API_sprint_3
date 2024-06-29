@@ -2,7 +2,7 @@ from uuid import UUID
 
 import api.v1.schemas as schemas
 from core.auth import AuthorizationProvider, TokenData, bearer_security
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Form
 from fastapi.security import HTTPAuthorizationCredentials
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 from services.oidc_client import OIDCClient, get_oidc_service
@@ -21,10 +21,11 @@ async def protected_route(user: TokenData = Depends(AuthorizationProvider(is_str
     description="Returns token by login and password",
 )
 async def user_token(
-    login: schemas.Login,
+    login: str = Form(...),
+    password: str = Form(...),
     oidc: OIDCClient = Depends(get_oidc_service),
 ) -> schemas.Token:
-    token = await oidc.password_flow(login.login, login.password)
+    token = await oidc.password_flow(login, password)
     return schemas.Token.model_validate(token)
 
 
@@ -118,11 +119,13 @@ async def list_users(
 
 @router.post("/", summary="Create user", description="Returns created user")
 async def create_user(
-    user: schemas.CreateUser,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> schemas.User:
-    await keycloak.create_user(user.email, user.password, user.username)
-    createdUser = await keycloak.get_user_with_email(user.email)
+    await keycloak.create_user(username, email, password)
+    createdUser = await keycloak.get_user_with_email(email)
     return schemas.User.model_validate(createdUser)
 
 
