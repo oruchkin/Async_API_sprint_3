@@ -1,4 +1,5 @@
 import datetime
+import json
 from functools import lru_cache
 from typing import cast
 from uuid import UUID
@@ -242,10 +243,12 @@ class KeycloackClient:
                 raise ValueError(data["error"])
 
     async def _handle_failed_response(self, response: aiohttp.ClientResponse) -> dict:
-        data = await response.json()
+        raw = await response.text()
         if response.ok:
-            return data
+            # some api calls return empty response
+            return json.loads(raw) if raw else {}
 
+        data = json.loads(raw)
         error = self._get_error_message(data)
 
         if response.status == 401:
