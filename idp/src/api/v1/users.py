@@ -7,8 +7,6 @@ from fastapi.security import HTTPAuthorizationCredentials
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 from services.oidc_client import OIDCClient, get_oidc_service
 
-from .utils import convert_to_http_error
-
 router = APIRouter()
 
 
@@ -139,12 +137,9 @@ async def get_user_roles(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
     _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> list[schemas.Role]:
-    try:
-        roles = await keycloak.list_user_roles(user_id)
-        mapped = [schemas.Role.model_validate(role) for role in roles]
-        return mapped
-    except Exception as e:
-        raise convert_to_http_error(e)
+    roles = await keycloak.list_user_roles(user_id)
+    mapped = [schemas.Role.model_validate(role) for role in roles]
+    return mapped
 
 
 @router.get(
