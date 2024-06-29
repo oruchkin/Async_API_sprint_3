@@ -5,8 +5,6 @@ from core.auth import AuthorizationProvider
 from fastapi import APIRouter, Depends
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 
-from .utils import convert_to_http_error
-
 router = APIRouter()
 
 
@@ -35,13 +33,10 @@ async def create_role(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
     _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> schemas.Role:
-    try:
-        await keycloak.create_role(model.name, model.description)
-        roles = await keycloak.list_roles()
-        role = next(r for r in roles if r.name == model.name)
-        return schemas.Role.model_validate(role)
-    except Exception as e:
-        raise convert_to_http_error(e)
+    await keycloak.create_role(model.name, model.description)
+    roles = await keycloak.list_roles()
+    role = next(r for r in roles if r.name == model.name)
+    return schemas.Role.model_validate(role)
 
 
 @router.delete(
@@ -55,10 +50,7 @@ async def delete_role(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
     _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> None:
-    try:
-        await keycloak.delete_role(role_id)
-    except Exception as e:
-        raise convert_to_http_error(e)
+    await keycloak.delete_role(role_id)
 
 
 @router.put(
@@ -73,13 +65,10 @@ async def modify_role(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
     _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> schemas.Role:
-    try:
-        role = await keycloak.get_role(role_id)
-        role.description = model.description
-        await keycloak.modify_role(role)
-        return schemas.Role.model_validate(role)
-    except Exception as e:
-        raise convert_to_http_error(e)
+    role = await keycloak.get_role(role_id)
+    role.description = model.description
+    await keycloak.modify_role(role)
+    return schemas.Role.model_validate(role)
 
 
 @router.post(
@@ -109,8 +98,5 @@ async def delete_role_for_user(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
     _=Depends(AuthorizationProvider(roles=["admin"])),
 ) -> None:
-    try:
-        role = await keycloak.get_role(role_id)
-        await keycloak.remove_user_role(user_id, role)
-    except Exception as e:
-        raise convert_to_http_error(e)
+    role = await keycloak.get_role(role_id)
+    await keycloak.remove_user_role(user_id, role)
