@@ -1,7 +1,7 @@
 import datetime
 import json
 from functools import lru_cache
-from typing import cast
+from typing import Any, Callable, Literal, cast
 from uuid import UUID
 
 import aiohttp
@@ -14,6 +14,8 @@ from pydantic import TypeAdapter
 from services.keycloack_endpoints import KeycloakEndpoints
 
 from .oidc_client import OIDCClient, get_oidc_service
+
+Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
 
 
 class KeycloackClient:
@@ -28,82 +30,54 @@ class KeycloackClient:
         self._timeout = aiohttp.ClientTimeout(total=None, sock_connect=5, sock_read=5)
 
     async def get_role(self, role_id: UUID) -> models.RoleEntryModel:
-        headers = await self._get_request_headers()
         url = self._endpoints.get_role_with_id(role_id)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await self._handle_failed_response(response)
-                return models.RoleEntryModel.model_validate(data)
+        data = await self._get(url)
+        return models.RoleEntryModel.model_validate(data)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def list_roles(self) -> list[models.RoleEntryModel]:
-        headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.roles(id)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await self._handle_failed_response(response)
-                ta = TypeAdapter(list[models.RoleEntryModel])
-                return ta.validate_python(data)
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.RoleEntryModel])
+        return ta.validate_python(data)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def create_role(self, name: str, description: str | None = None) -> None:
-        payload = {"name": name, "clientRole": False, "description": description or ""}
-        headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.roles(id)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, json=payload) as response:
-                await self._handle_failed_response(response)
+        payload = {"name": name, "clientRole": False, "description": description or ""}
+        await self._send("POST", url, payload)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def delete_role(self, role_id: UUID) -> None:
-        headers = await self._get_request_headers()
         url = self._endpoints.single_role(role_id)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.delete(url) as response:
-                await self._handle_failed_response(response)
+        await self._send("DELETE", url)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def modify_role(self, role: models.RoleEntryModel) -> None:
-        headers = await self._get_request_headers()
-        url = self._endpoints.single_role(role.id)
         payload = {
             "id": str(role.id),
             "name": role.name,
             "description": role.description,
         }
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.put(url, json=payload) as response:
-                await self._handle_failed_response(response)
+        url = self._endpoints.single_role(role.id)
+        await self._send("PUT", url, payload)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def list_users(self) -> list[models.UserEntryModel]:
         """
         Get all users
         """
         url = self._endpoints.list_users()
-        headers = await self._get_request_headers()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await self._handle_failed_response(response)
-                ta = TypeAdapter(list[models.UserEntryModel])
-                return ta.validate_python(data)
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.UserEntryModel])
+        return ta.validate_python(data)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def get_user_with_email(self, email: str) -> models.UserEntryModel:
         """
         Get user by email
         """
         url = self._endpoints.get_user_with_email(email)
-        headers = await self._get_request_headers()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await self._handle_failed_response(response)
-                ta = TypeAdapter(list[models.UserEntryModel])
-                return ta.validate_python(data)[0]
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.UserEntryModel])
+        return ta.validate_python(data)[0]
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def create_user(self, username: str, email: str, password: str) -> None:
         """
         Creates new user.
@@ -120,71 +94,72 @@ class KeycloackClient:
             "credentials": [{"type": "password", "value": password, "temporary": False}],
         }
         url = self._endpoints.create_user()
-        headers = await self._get_request_headers()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, json=payload) as response:
-                await self._handle_failed_response(response)
+        await self._post(url, payload)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def list_user_roles(self, user_id: UUID) -> list[models.RoleEntryModel]:
-        headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await self._handle_failed_response(response)
-                ta = TypeAdapter(list[models.RoleEntryModel])
-                return ta.validate_python(data)
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.RoleEntryModel])
+        return ta.validate_python(data)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def list_user_sessions(self, user_id: UUID) -> list[models.UserSessionModel]:
-        headers = await self._get_request_headers()
         url = self._endpoints.get_user_sessions(user_id)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await self._handle_failed_response(response)
-                ta = TypeAdapter(list[models.UserSessionModel])
-                return ta.validate_python(data)
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.UserSessionModel])
+        return ta.validate_python(data)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def set_user_role(self, user_id: UUID, role: models.RoleEntryModel) -> None:
-        headers = await self._get_request_headers()
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
         payload = [{"id": str(role.id), "name": role.name}]
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, json=payload) as response:
-                await self._handle_failed_response(response)
+        await self._post(url, payload)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def remove_user_role(self, user_id: UUID, role: models.RoleEntryModel) -> None:
-        headers = await self._get_request_headers()
+        payload = [{"id": str(role.id), "name": role.name}]
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
-        payload = [{"id": str(role.id), "name": role.name}]
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.delete(url, json=payload) as response:
-                await self._handle_failed_response(response)
+        await self._send("DELETE", url, payload)
 
-    @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
     async def reset_password(self, user_id: UUID, password: str) -> None:
         """
         Reset user's password by `user_id`. Don't forget to verify old password beforehand.
         """
         payload = {"temporary": False, "type": "password", "value": password}
         url = self._endpoints.reset_user_password(user_id)
-        headers = await self._get_request_headers()
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url, json=payload) as response:
-                await self._handle_failed_response(response)
+        await self._send("POST", url, payload)
+
+    async def user_logout_all(self, user_id: UUID) -> None:
+        url = self._endpoints.delete_user_sessions(user_id)
+        await self._send("POST", url)
+
+    @staticmethod
+    def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
+        match verb:
+            case "GET":
+                return session.get
+            case "POST":
+                return session.post
+            case "DELETE":
+                return session.delete
+            case "PUT":
+                return session.put
+            case "PATCH":
+                return session.patch
 
     @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
-    async def user_logout_all(self, user_id: UUID) -> None:
+    async def _send(self, verb: Verb, url: str, payload: Any | None = None) -> Any:
         headers = await self._get_request_headers()
-        url = self._endpoints.delete_user_sessions(user_id)
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.post(url) as response:
-                await self._handle_failed_response(response)
+            func = KeycloackClient._get_func_by_verb(verb, session)
+            async with func(url, json=payload) as response:
+                return await self._handle_failed_response(response)
+
+    async def _get(self, url: str) -> Any:
+        return await self._send("GET", url)
+
+    async def _post(self, url: str, json_payload: Any) -> Any:
+        return await self._send("POST", url, json_payload)
 
     async def _get_request_headers(self) -> dict:
         return {"Authorization": await self._get_auth_header_value(), "Content-Type": "application/json"}
