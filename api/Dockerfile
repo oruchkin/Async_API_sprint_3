@@ -11,4 +11,4 @@ COPY src/ .
 
 EXPOSE 26452
 
-ENTRYPOINT ["gunicorn", "main:app", "--log-level=debug", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:26452"]
+ENTRYPOINT ["gunicorn", "main:app", "--log-level=debug", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
