@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Filmwork, Genre, GenreFilmwork, Person, PersonFilmwork
+from .models import Filmwork, Genre, GenreFilmwork, Person, PersonFilmwork, User
 
 
 class GenreFilmworkInline(admin.TabularInline):
@@ -28,7 +28,13 @@ class GenreAdmin(admin.ModelAdmin):
 
 
 @admin.register(Person)
-class Person(admin.ModelAdmin):
+class PersonAdmin(admin.ModelAdmin):
     list_display = ("full_name",)
     search_fields = ("film_work", "person")
     inlines = (PersonFilmworkInline,)
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ("id",)
+    search_fields = ("email",)

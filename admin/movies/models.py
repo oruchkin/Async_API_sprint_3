@@ -1,9 +1,12 @@
 import uuid
 
+from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from movies.custom_storage import CustomStorage
+
+from .my_user_manager import MyUserManager
 
 
 class FilmType(models.TextChoices):
@@ -126,3 +129,30 @@ class PersonFilmwork(UUIDMixin):
 
     def __str__(self):
         return self.role
+
+
+class User(AbstractBaseUser):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(verbose_name="email address", max_length=255, unique=True)
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
+
+    # строка с именем поля модели, которая используется в качестве уникального идентификатора
+    USERNAME_FIELD = "email"
+
+    # менеджер модели
+    objects = MyUserManager()
+
+    def __str__(self):
+        return f"{self.email} {self.id}"
+
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    class Meta:
+        db_table = 'content"."user'
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
