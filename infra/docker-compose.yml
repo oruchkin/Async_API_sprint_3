@@ -10,7 +10,7 @@ services:
 
   postgres:
     extends: postgres-base
-    profiles: ["all", "admin", "etl"]
+    profiles: [all, admin, etl, api]
 
   postgres-dev:
     <<: *postgres-base
@@ -194,18 +194,26 @@ services:
   idp:
     build:
       context: ./../idp
-    expose: [29543]
+    expose: [8000]
     depends_on: [postgres]
     env_file: [.env]
-    profiles: ["all", "fastapi"]
+    profiles: [all, api]
 
-  keycloak:
+  keycloak-dev:
     build:
       context: ./../idp/keycloak
     ports: [32546:8080]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [idp-dev]
+  
+  keycloak:
+    build:
+      context: ./../idp/keycloak
+    expose: [8080]
+    depends_on: [postgres]
+    env_file: [.env]
+    profiles: [api]
 
   jaeger:
     image: jaegertracing/all-in-one:latest

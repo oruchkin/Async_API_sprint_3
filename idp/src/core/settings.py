@@ -6,3 +6,9 @@ class KeycloakSettings(BaseSettings):
     url: str = ""
     client: str = ""
     secret: str = ""
+
+
+class JaegerSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="JAEGER_")
+    host: str
+    port: int

@@ -10,12 +10,15 @@ import models
 import services.errors as errors
 from core.settings import KeycloakSettings
 from fastapi import Depends
+from opentelemetry import trace
 from pydantic import TypeAdapter
 from services.keycloack_endpoints import KeycloakEndpoints
 
 from .oidc_client import OIDCClient, get_oidc_service
 
 Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
+
+tracer = trace.get_tracer(__name__)
 
 
 class KeycloackClient:
@@ -209,12 +212,13 @@ class KeycloackClient:
         # (https://stackoverflow.com/questions/68632386/get-id-not-clientid-from-keycloak-jwt-token)
         headers = await self._get_request_headers()
         url = self._endpoints.client_id(self._settings.client)
-        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
-            async with session.get(url) as response:
-                data = await response.json()
-                if response.ok:
-                    self._client_id = data[0]["id"]
-                    return cast(str, self._client_id)
+        with tracer.start_as_current_span("keycloak-request"):
+            async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+                async with session.get(url) as response:
+                    data = await response.json()
+                    if response.ok:
+                        self._client_id = data[0]["id"]
+                        return cast(str, self._client_id)
 
                 raise ValueError(data["error"])
 

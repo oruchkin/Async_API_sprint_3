@@ -26,3 +26,8 @@ class JaegerSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="JAEGER_")
     host: str
     port: int
+
+
+class IDPSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="IDP_")
+    url: str

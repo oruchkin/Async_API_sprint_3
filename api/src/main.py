@@ -1,4 +1,5 @@
 import logging.config
+import re
 
 import uvicorn
 from api.v1 import films, genres, health, persons
@@ -8,6 +9,7 @@ from core.tracer import configure_tracer
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from opentelemetry import trace
 
 load_dotenv()
 logging.config.dictConfig(LOGGING)
@@ -34,6 +36,24 @@ async def before_request(request: Request, call_next):
     request_id = request.headers.get("X-Request-Id")
     if not request_id:
         return ORJSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "X-Request-Id is required"})
+
+    # TODO(agrebennikov): Это не работает, оно создает отдельный пустой спан, а не добавляет тэг к текущему
+    tracer = trace.get_tracer(__name__)
+    span = tracer.start_span("")
+    span.set_attribute("http.request_id", request_id)
+    span.end()
+
+    return response
+
+
+@app.middleware("http")
+async def add_trace_id(request: Request, call_next):
+    request_id = request.headers.get("X-Request-Id")
+    trace_id = trace.get_current_span().get_span_context().trace_id
+    response = await call_next(request)
+    response.headers["X-Trace-Id"] = format(trace_id, "x")
+    response.headers["X-Request-Id"] = request_id
+
     return response
 
 
