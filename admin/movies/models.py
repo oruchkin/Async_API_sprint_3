@@ -136,6 +136,7 @@ class User(AbstractBaseUser):
     email = models.EmailField(verbose_name="email address", max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
 
     # строка с именем поля модели, которая используется в качестве уникального идентификатора
     USERNAME_FIELD = "email"
@@ -153,6 +154,5 @@ class User(AbstractBaseUser):
         return True
 
     class Meta:
-        db_table = 'content"."user'
         verbose_name = _("User")
         verbose_name_plural = _("Users")
