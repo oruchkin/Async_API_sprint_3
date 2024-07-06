@@ -197,7 +197,16 @@ services:
     expose: [8000]
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [all, api, api-dev]
+    profiles: [all, api]
+  
+  idp-dev:
+    build:
+      context: ./../idp
+    expose: [8000]
+    ports: [45375:8000]
+    depends_on: [postgres-dev]
+    env_file: [.env, .env.dev]
+    profiles: [api-dev]
 
   keycloak-dev:
     build:
