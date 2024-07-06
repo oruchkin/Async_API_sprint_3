@@ -11,7 +11,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import TypeAdapter
 from services.cache.storage import ICache
 from services.film import FilmService, get_film_service
-from services.idp_client import IDPClientService, get_idp_client_service
 
 router = APIRouter()
 
@@ -28,7 +27,6 @@ async def list_films(
     sort: SORT_OPTION = Query("imdb_rating", description="Sorting options"),
     genre: UUID | None = Query(None, description="Films by genre"),
     film_service: FilmService = Depends(get_film_service),
-    idp_service: IDPClientService = Depends(get_idp_client_service),
     cache: ICache = Depends(get_cache),
 ) -> list[Film]:
     key = f"films:{pagination.page_number}:{pagination.page_size}:{genre}:{sort}"
@@ -50,11 +48,6 @@ async def list_films(
     cached = adapter.dump_json(mapped)
     await cache.set(key, cached, 60 * 5)
     response.headers["Cache-Control"] = f"max-age={60 * 5}"
-    try:
-        await idp_service.info()
-    except Exception as ex:
-        print(ex)
-
     return mapped
 
 
