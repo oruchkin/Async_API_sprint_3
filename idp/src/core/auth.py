@@ -38,6 +38,10 @@ class User(SimpleUser):
 
         self.token = token_data
 
+    @property
+    def id(self) -> uuid.UUID:
+        return self.token.user_id
+
 
 bearer_security = HTTPBearer()
 
