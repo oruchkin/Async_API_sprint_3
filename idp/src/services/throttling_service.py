@@ -3,7 +3,7 @@ import datetime
 from core.auth import User
 from redis.asyncio import Redis
 
-REQUEST_LIMIT_PER_MINUTE = 1
+REQUEST_LIMIT_PER_MINUTE = 20
 
 
 class ThrottlingService:

@@ -93,7 +93,7 @@ services:
     <<: *redis-base
     volumes: [redisstorage:/data]
     ports: [6379:6379]
-    profiles: ["all", "api", "api-dev", "etl", "etl-dev"]
+    profiles: [all, api, api-dev, etl, etl-dev, idp-dev]
 
   redis-clean:
     <<: *redis-base
