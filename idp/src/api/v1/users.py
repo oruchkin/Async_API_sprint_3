@@ -1,7 +1,9 @@
+import uuid
 from uuid import UUID
 
 import api.v1.schemas as schemas
 from core.auth import AuthorizationProvider, TokenData, bearer_security
+from core.verification import verify_token
 from fastapi import APIRouter, Depends, Form
 from fastapi.security import HTTPAuthorizationCredentials
 from services.keycloak_client import KeycloackClient, get_keycloak_service
@@ -13,6 +15,24 @@ router = APIRouter()
 @router.get("/me")
 async def protected_route(user: TokenData = Depends(AuthorizationProvider(is_strict=True))):
     return user.model_dump()
+
+
+@router.post("/login", summary="Old school login")
+async def login(
+    login: str = Form(...),
+    password: str = Form(...),
+    oidc: OIDCClient = Depends(get_oidc_service),
+) -> TokenData:
+    token = await oidc.password_flow(login, password)
+    payload = await verify_token(oidc, token.access_token)
+    roles = payload.get("resource_access", {}).get(oidc.client_id, {}).get("roles") or []
+    return TokenData(
+        user_id=uuid.UUID(payload["sub"]),
+        username=payload.get("preferred_username"),
+        email=payload.get("email"),
+        email_verified=payload.get("email_verified"),
+        roles=roles,
+    )
 
 
 @router.post(

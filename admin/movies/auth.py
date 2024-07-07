@@ -21,11 +21,7 @@ class CustomBackend(BaseBackend):
         if not username or not password:
             return None
 
-        token = self._get_token(username, password)
-        if not token:
-            return None
-
-        data = self._get_user(token)
+        data = self._login(username, password)
         if not data:
             return None
 
@@ -51,29 +47,13 @@ class CustomBackend(BaseBackend):
         except User.DoesNotExist:
             return None
 
-    def _get_token(self, username: str, password: str) -> dict | None:
+    def _login(self, username: str, password: str) -> dict | None:
         base_url = settings.AUTH_API_LOGIN_URL
         payload = {"login": username, "password": password}
         with requests.Session() as session:
-            token_url = f"{base_url}/users/token"
-            token_response = session.post(token_url, data=payload)
-            if token_response.status_code != http.HTTPStatus.OK:
+            url = f"{base_url}/users/login"
+            response = session.post(url, data=payload)
+            if response.status_code != http.HTTPStatus.OK:
                 return None
 
-            return token_response.json()
-
-    def _get_user(self, token: dict) -> dict | None:
-        base_url = settings.AUTH_API_LOGIN_URL
-        with requests.Session() as session:
-            user_url = f"{base_url}/users/me"
-            headers = {"Authorization": f"{token['token_type']} {token['access_token']}"}
-            data_response = session.get(user_url, headers=headers)
-            if data_response.status_code != http.HTTPStatus.OK:
-                return None
-            #
-            # 'user_id' = '82582cce-9229-4c00-842d-291223c19d14'
-            # 'username' = 'jonny4@example.com'
-            # 'email' = 'jonny4@example.com'
-            # 'email_verified' = False
-            # 'roles' = ['admin', 'one-more-role']
-            return data_response.json()
+            return response.json()
