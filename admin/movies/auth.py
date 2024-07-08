@@ -43,6 +43,7 @@ class CustomBackend(BaseBackend):
 
     def get_user(self, user_id):
         try:
+            # TODO: Maybe we can verify token here
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
