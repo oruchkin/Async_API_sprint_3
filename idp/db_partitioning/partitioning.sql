@@ -16,9 +16,9 @@ CREATE TABLE user_entity (
     created_timestamp           bigint,
     service_account_client_link varchar(255),
     not_before                  integer default 0     not null,
-    PRIMARY KEY (id, created_timestamp), -- Добавляем created_timestamp в primary key
-    UNIQUE (realm_id, email_constraint, created_timestamp), -- Добавляем created_timestamp в unique constraint
-    UNIQUE (realm_id, username, created_timestamp) -- Добавляем created_timestamp в unique constraint
+    PRIMARY KEY (id, created_timestamp),
+    UNIQUE (realm_id, email_constraint, created_timestamp),
+    UNIQUE (realm_id, username, created_timestamp)
 ) PARTITION BY RANGE (created_timestamp);
 
 -- Назначение владельца таблицы
