@@ -3,8 +3,11 @@ from typing import Any, Literal, cast
 from uuid import UUID
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
+from opentelemetry import trace
 
 INDICES = Literal["movies", "persons", "genres"]
+
+tracer = trace.get_tracer(__name__)
 
 
 class ServiceABC(ABC):
@@ -28,6 +31,7 @@ class ServiceABC(ABC):
         body = {"query": query, "size": size, "from": skip}
         if sort:
             body["sort"] = {key: {"order": "asc" if value > 0 else "desc"} for (key, value) in sort.items()}
-        data = await self.elastic.search(index=index, body=body)
-        docs = cast(dict, data)["hits"]["hits"]
-        return [doc["_source"] for doc in docs]
+        with tracer.start_as_current_span("elasticsearch-request"):
+            data = await self.elastic.search(index=index, body=body)
+            docs = cast(dict, data)["hits"]["hits"]
+            return [doc["_source"] for doc in docs]

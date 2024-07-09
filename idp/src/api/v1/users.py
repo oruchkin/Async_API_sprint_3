@@ -1,4 +1,3 @@
-import uuid
 from uuid import UUID
 
 import api.v1.schemas as schemas
@@ -25,14 +24,7 @@ async def login(
 ) -> TokenData:
     token = await oidc.password_flow(login, password)
     payload = await verify_token(oidc, token.access_token)
-    roles = payload.get("resource_access", {}).get(oidc.client_id, {}).get("roles") or []
-    return TokenData(
-        user_id=uuid.UUID(payload["sub"]),
-        username=payload.get("preferred_username"),
-        email=payload.get("email"),
-        email_verified=payload.get("email_verified"),
-        roles=roles,
-    )
+    return TokenData.from_token(payload, oidc.client_id)
 
 
 @router.post(

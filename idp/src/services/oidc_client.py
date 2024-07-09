@@ -5,8 +5,11 @@ import aiohttp
 import models
 import services.errors as errors
 from core.settings import KeycloakSettings
+from opentelemetry import trace
 
 from .keycloack_endpoints import KeycloakEndpoints
+
+tracer = trace.get_tracer(__name__)
 
 
 class OIDCClient:
@@ -133,12 +136,13 @@ class OIDCClient:
     async def get_discovery(self) -> dict:
         if not self._discovery_data:
             url = f"{self._base_url}/.well-known/openid-configuration"
-            async with aiohttp.ClientSession(timeout=self._timeout) as session:
-                async with session.get(url) as response:
-                    self._discovery_data = await response.json()
-                    if not self._discovery_data:
-                        # mostly for type checking
-                        raise ValueError("Failed to load discovery")
+            with tracer.start_as_current_span("oidc-request"):
+                async with aiohttp.ClientSession(timeout=self._timeout) as session:
+                    async with session.get(url) as response:
+                        self._discovery_data = await response.json()
+                        if not self._discovery_data:
+                            # mostly for type checking
+                            raise ValueError("Failed to load discovery")
 
         return self._discovery_data
 

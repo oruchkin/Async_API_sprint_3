@@ -10,7 +10,7 @@ services:
 
   postgres:
     extends: postgres-base
-    profiles: ["all", "admin", "etl"]
+    profiles: [all, admin, etl, api]
 
   postgres-dev:
     <<: *postgres-base
@@ -103,16 +103,16 @@ services:
   api:
     build:
       context: ./../api
-    ports: [26452:26452]
+    expose: [8000]
     depends_on: [elasticsearch, redis]
     env_file: [.env]
-    profiles: ["all", "fastapi"]
+    profiles: ["all", "api"]
 
   api-test:
     build:
       context: ./../api
     env_file: [.env, .env.test]
-    expose: [26452]
+    expose: [8000]
     depends_on: [elasticsearch-clean, redis-clean]
     profiles: ["api-test"]
 
@@ -131,6 +131,15 @@ services:
       && python3 -m functional.utils.wait_for_redis
       && pytest ./functional/tests"
     profiles: ["api-test"]
+  
+  api-nginx:
+    image: nginx:1.25-alpine
+    volumes:
+      - ./../api/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    ports: [43212:80]
+    profiles: [api]
 
   minio-base:
     image: minio/minio
@@ -193,16 +202,16 @@ services:
     <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [all, fastapi]
+    profiles: [all, api]
 
   idp-dev:
     <<: *idp-base
     ports: [29543:8000]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
-    profiles: [admin-dev]
+    profiles: [admin-dev, api-dev]
 
-  keycloak:
+  keycloak-dev:
     build:
       context: ./../idp/keycloak
     ports: [32546:8080]
@@ -210,6 +219,20 @@ services:
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [admin-dev, idp-dev]
+  
+  keycloak:
+    build:
+      context: ./../idp/keycloak
+    expose: [8080]
+    depends_on: [postgres]
+    env_file: [.env]
+    profiles: [api]
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports: [6831:6831/udp, 16686:16686]
+    expose: [6831/udp, 6831]
+    profiles: [api, api-dev]
 
 volumes:
   dbstorage:
