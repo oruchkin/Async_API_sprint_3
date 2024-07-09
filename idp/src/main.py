@@ -13,9 +13,9 @@ from db.redis import get_redis
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from opentelemetry import trace
 from services.throttling_service import ThrottlingService
 from starlette.middleware.authentication import AuthenticationMiddleware
-from opentelemetry import trace
 
 load_dotenv()
 logging.config.dictConfig(LOGGING)
@@ -33,6 +33,25 @@ app = FastAPI(
     log_config=LOGGING,
     log_level=logging.DEBUG,
 )
+
+
+@app.middleware("http")
+async def throttle_by_user(request: Request, call_next):
+
+    if request.user.is_authenticated:
+        # throttle here
+        redis = get_redis()
+        throttler = ThrottlingService(redis)
+        if not await throttler.is_allowed(request.user):
+            return ORJSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={"detail": "That's too much, good luck in a minute"},
+            )
+
+    return await call_next(request)
+
+
+app.add_middleware(AuthenticationMiddleware, backend=BasicAuthBackend())
 
 
 @app.middleware("http")
@@ -67,8 +86,7 @@ async def ensure_request_id_header(request: Request, call_next):
         headers["X-Request-Id"] = request_id
         request.scope["headers"] = headers.raw
 
-    return await call_next(request    middleware=middleware,
-)
+    return await call_next(request)
 
 
 @app.exception_handler(Exception)
@@ -78,24 +96,6 @@ async def unicorn_exception_handler(request: Request, error: Exception):
     """
     return error_to_json_response(error)
 
-
-@app.middleware("http")
-async def throttle_by_user(request: Request, call_next):
-
-    if request.user.is_authenticated:
-        # throttle here
-        redis = get_redis()
-        throttler = ThrottlingService(redis)
-        if not await throttler.is_allowed(request.user):
-            return ORJSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={"detail": "That's too much, good luck in a minute"},
-            )
-
-    return await call_next(request)
-
-
-app.add_middleware(AuthenticationMiddleware, backend=BasicAuthBackend())
 
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
