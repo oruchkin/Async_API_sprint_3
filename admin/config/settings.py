@@ -7,6 +7,7 @@ from split_settings.tools import include
 load_dotenv()
 
 include(
+    "components/auth.py",
     "components/auth_password_validators.py",
     "components/installed_apps.py",
     "components/configuration.py",

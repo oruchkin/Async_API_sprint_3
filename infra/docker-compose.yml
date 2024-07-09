@@ -182,21 +182,34 @@ services:
     stdin_open: true
     profiles: ["init"]
 
-  idp:
+
+  idp-base: &idp-base
     build:
-      context: ./../idp
-    expose: [29543]
+        context: ./../idp
+    expose: [8000]
+    profiles: [never]
+
+  idp:
+    <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
-    profiles: ["all", "fastapi"]
+    profiles: [all, fastapi]
+
+  idp-dev:
+    <<: *idp-base
+    ports: [29543:8000]
+    depends_on: [postgres-dev]
+    env_file: [.env, .env.dev]
+    profiles: [admin-dev]
 
   keycloak:
     build:
       context: ./../idp/keycloak
     ports: [32546:8080]
+    expose: [8080]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
-    profiles: [idp-dev]
+    profiles: [admin-dev, idp-dev]
 
 volumes:
   dbstorage:

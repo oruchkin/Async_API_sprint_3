@@ -9,7 +9,7 @@ class FilmWork:
     title: str
     description: str
     creation_date: datetime.datetime
-    file_path: str
+    file: str
     rating: float
     type: str
     created: datetime.datetime
