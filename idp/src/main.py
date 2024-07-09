@@ -4,12 +4,17 @@ import string
 
 import uvicorn
 from api.v1 import roles, users
+from core.auth import BasicAuthBackend
 from core.errors_utils import error_to_json_response
 from core.lifecycle import lifespan
 from core.logger import LOGGING
 from core.tracer import configure_tracer
+from db.redis import get_redis
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
+from fastapi.responses import ORJSONResponse
+from services.throttling_service import ThrottlingService
+from starlette.middleware.authentication import AuthenticationMiddleware
 from opentelemetry import trace
 
 load_dotenv()
@@ -62,7 +67,8 @@ async def ensure_request_id_header(request: Request, call_next):
         headers["X-Request-Id"] = request_id
         request.scope["headers"] = headers.raw
 
-    return await call_next(request)
+    return await call_next(request    middleware=middleware,
+)
 
 
 @app.exception_handler(Exception)
@@ -72,6 +78,24 @@ async def unicorn_exception_handler(request: Request, error: Exception):
     """
     return error_to_json_response(error)
 
+
+@app.middleware("http")
+async def throttle_by_user(request: Request, call_next):
+
+    if request.user.is_authenticated:
+        # throttle here
+        redis = get_redis()
+        throttler = ThrottlingService(redis)
+        if not await throttler.is_allowed(request.user):
+            return ORJSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={"detail": "That's too much, good luck in a minute"},
+            )
+
+    return await call_next(request)
+
+
+app.add_middleware(AuthenticationMiddleware, backend=BasicAuthBackend())
 
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])

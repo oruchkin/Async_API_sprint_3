@@ -17,6 +17,8 @@ class OIDCClient:
     OpenID Connect interactions class
     """
 
+    JWKS_CACHE: models.JWKSModel | None = None
+
     _discovery_data: dict | None = None
 
     def __init__(self, url: str, client_credentials: KeycloakSettings):
@@ -108,19 +110,21 @@ class OIDCClient:
                 data = await self._ensure_ok_response(response)
                 return models.TokenModel.model_validate(data)
 
-    # TODO: Use ttl_cache here
     async def oidc_jwks(self) -> models.JWKSModel:
         """
         The JSON Web Key Set (JWKS) is a set of keys containing the public keys
         used to verify any JSON Web Token (JWT) issued by the Authorization Server
         and signed using the RS256 signing algorithm.
         """
-        discovery = await self.get_discovery()
-        url = discovery["jwks_uri"]
-        async with aiohttp.ClientSession(timeout=self._timeout) as session:
-            async with session.get(url) as response:
-                data = await response.text()
-                return models.JWKSModel.model_validate_json(data)
+        if not OIDCClient.JWKS_CACHE:
+            discovery = await self.get_discovery()
+            url = discovery["jwks_uri"]
+            async with aiohttp.ClientSession(timeout=self._timeout) as session:
+                async with session.get(url) as response:
+                    data = await response.text()
+                    OIDCClient.JWKS_CACHE = models.JWKSModel.model_validate_json(data)
+
+        return OIDCClient.JWKS_CACHE
 
     async def jwks_raw(self) -> dict:
         discovery = await self.get_discovery()

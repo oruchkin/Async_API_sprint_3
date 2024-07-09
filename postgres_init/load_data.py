@@ -98,6 +98,8 @@ def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
                     row["certificate"] = ""
                     row["description"] = ""
                     row["rating"] = 0
+                    row["file"] = row.pop("file_path", None)
+
             if table["name"] == "genre":
                 for row in data:
                     row["description"] = ""

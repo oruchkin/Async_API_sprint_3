@@ -18,7 +18,7 @@ def psycopg2_connection() -> PgConnection:
         "password": settings.postgres_password,
         "host": settings.postgres_host,
         "port": settings.postgres_port,
-        "options": "-c search_path=migration",
+        "options": "-c search_path=content",
     }
     return psycopg2.connect(**dsl, cursor_factory=DictCursor)
 

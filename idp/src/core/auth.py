@@ -8,16 +8,39 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from services.oidc_client import OIDCClient, get_oidc_service
+from starlette.authentication import AuthCredentials, AuthenticationBackend, SimpleUser
 
 logger = logging.getLogger(__name__)
 
 
 class TokenData(BaseModel):
     user_id: uuid.UUID
-    username: Optional[str] = None
+    username: str
     email: Optional[str] = None
     email_verified: Optional[bool] = None
     roles: list[str] = []
+
+    @staticmethod
+    def from_token(token: dict, client_id: str) -> "TokenData":
+        roles = _extract_roles(token, client_id)
+        return TokenData(
+            user_id=uuid.UUID(token["sub"]),
+            username=token["preferred_username"],
+            email=token.get("email"),
+            email_verified=token.get("email_verified"),
+            roles=roles,
+        )
+
+
+class User(SimpleUser):
+    def __init__(self, token_data: TokenData) -> None:
+        super().__init__(token_data.username)
+
+        self.token = token_data
+
+    @property
+    def id(self) -> uuid.UUID:
+        return self.token.user_id
 
 
 bearer_security = HTTPBearer()
@@ -33,18 +56,8 @@ async def get_current_user(
 
     try:
         payload = await verify_token(oidc_client, credentials.credentials)
-        if user_id := payload.get("sub"):
-            roles = _extract_roles(payload, oidc_client.client_id)
-
-            token_data = TokenData(
-                user_id=uuid.UUID(user_id),
-                username=payload.get("preferred_username"),
-                email=payload.get("email"),
-                email_verified=payload.get("email_verified"),
-                roles=roles,
-            )
-
-            return token_data
+        if payload.get("sub"):
+            return TokenData.from_token(payload, oidc_client.client_id)
     except Exception as ex:
         logger.info(ex)
 
@@ -79,3 +92,22 @@ class AuthorizationProvider:
                 raise HTTPException(status_code=HTTPStatus.FORBIDDEN)
 
         return user
+
+
+class BasicAuthBackend(AuthenticationBackend):
+    async def authenticate(self, conn):
+        if auth := conn.headers.get("Authorization"):
+            try:
+                scheme, credentials = auth.split()
+                if scheme.lower() != "bearer":
+                    return
+
+                oidc_client = get_oidc_service()
+                payload = await verify_token(oidc_client, credentials)
+                token = TokenData.from_token(payload, oidc_client.client_id)
+                return AuthCredentials(["authenticated"]), User(token)
+
+            except (ValueError, UnicodeDecodeError) as ex:
+                logger.error(ex)
+
+        return None

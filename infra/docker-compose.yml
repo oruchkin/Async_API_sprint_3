@@ -93,7 +93,7 @@ services:
     <<: *redis-base
     volumes: [redisstorage:/data]
     ports: [6379:6379]
-    profiles: ["all", "api", "api-dev", "etl", "etl-dev"]
+    profiles: [all, api, api-dev, etl, etl-dev, idp-dev]
 
   redis-clean:
     <<: *redis-base
@@ -191,30 +191,34 @@ services:
     stdin_open: true
     profiles: ["init"]
 
-  idp:
+
+  idp-base: &idp-base
     build:
-      context: ./../idp
+        context: ./../idp
     expose: [8000]
+    profiles: [never]
+
+  idp:
+    <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
     profiles: [all, api]
-  
+
   idp-dev:
-    build:
-      context: ./../idp
-    expose: [8000]
-    ports: [45375:8000]
+    <<: *idp-base
+    ports: [29543:8000]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
-    profiles: [api-dev]
+    profiles: [admin-dev, api-dev]
 
   keycloak-dev:
     build:
       context: ./../idp/keycloak
     ports: [32546:8080]
+    expose: [8080]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
-    profiles: [idp-dev]
+    profiles: [admin-dev, idp-dev]
   
   keycloak:
     build:
