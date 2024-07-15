@@ -10,7 +10,7 @@ services:
 
   postgres:
     extends: postgres-base
-    profiles: [all, admin, etl, api]
+    profiles: [all, admin, etl, api, idp]
 
   postgres-dev:
     <<: *postgres-base
@@ -93,7 +93,7 @@ services:
     <<: *redis-base
     volumes: [redisstorage:/data]
     ports: [6379:6379]
-    profiles: [all, api, api-dev, etl, etl-dev, idp-dev]
+    profiles: [all, api, api-dev, etl, etl-dev, idp-dev, idp]
 
   redis-clean:
     <<: *redis-base
@@ -196,17 +196,17 @@ services:
     build:
         context: ./../idp
     expose: [8000]
+    ports: [29543:8000]
     profiles: [never]
 
   idp:
     <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [all, api]
+    profiles: [all, api, idp]
 
   idp-dev:
     <<: *idp-base
-    ports: [29543:8000]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [admin-dev, api-dev]
@@ -225,13 +225,13 @@ services:
     expose: [8080]
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [api]
+    profiles: [api, idp]
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports: [6831:6831/udp, 16686:16686]
     expose: [6831/udp, 6831]
-    profiles: [api, api-dev, idp-dev]
+    profiles: [api, api-dev, idp-dev, idp]
 
 volumes:
   dbstorage:
