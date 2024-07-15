@@ -3,7 +3,7 @@ import secrets
 import string
 
 import uvicorn
-from api.v1 import roles, users
+from api.v1 import auth_vk, roles, users
 from core.auth import BasicAuthBackend
 from core.errors_utils import error_to_json_response
 from core.lifecycle import lifespan
@@ -99,6 +99,7 @@ async def unicorn_exception_handler(request: Request, error: Exception):
 
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
+app.include_router(auth_vk.router, prefix="/api/v1/auth/vk", tags=["auth", "vk"])
 
 if __name__ == "__main__":
     uvicorn.run(

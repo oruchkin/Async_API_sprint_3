@@ -1,10 +1,12 @@
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict
 
 
 class UserEntryModel(BaseModel):
     model_config = ConfigDict(strict=False)
 
-    id: str
+    id: UUID
     username: str
     email: str | None = None
     emailVerified: bool

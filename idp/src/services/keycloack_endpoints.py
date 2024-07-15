@@ -22,8 +22,15 @@ class KeycloakEndpoints:
     def list_users(self) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
 
+    def get_user_with_idp(self, idp: str, id: str) -> str:
+        # https://www.keycloak.org/docs-api/25.0.1/rest-api/index.html#_users
+        return f"{self._settings.url}/admin/realms/{self._realm}/users?idpAlias={idp}&idpUserId={id}"
+
     def get_user_with_email(self, email: str) -> str:
         return f"{self.list_users()}?email={email}&exact=true"
+
+    def get_user_with_username(self, username: str) -> str:
+        return f"{self.list_users()}?username={username}&exact=true"
 
     def create_user(self) -> str:
         """
@@ -39,6 +46,12 @@ class KeycloakEndpoints:
 
     def delete_user_sessions(self, user_id: UUID) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/logout"
+
+    def federeated_idp(self, user_id: UUID, idp: str) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/users/{user_id}/federated-identity/{idp}"
+
+    def token_exchange(self) -> str:
+        return f"{self._settings.url}/realms/master/protocol/openid-connect/token"
 
     def single_role(self, role_id: UUID) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/roles-by-id/{role_id}"

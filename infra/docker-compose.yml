@@ -214,8 +214,7 @@ services:
   keycloak-dev:
     build:
       context: ./../idp/keycloak
-    ports: [32546:8080]
-    expose: [8080]
+    ports: [32547:8080]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [admin-dev, idp-dev]
@@ -232,7 +231,7 @@ services:
     image: jaegertracing/all-in-one:latest
     ports: [6831:6831/udp, 16686:16686]
     expose: [6831/udp, 6831]
-    profiles: [api, api-dev]
+    profiles: [api, api-dev, idp-dev]
 
 volumes:
   dbstorage:

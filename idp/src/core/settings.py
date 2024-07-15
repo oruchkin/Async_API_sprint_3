@@ -18,3 +18,12 @@ class JaegerSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="JAEGER_")
     host: str
     port: int
+
+
+class VKSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="VK_")
+    client_id: str = ""
+    client_secret: str = ""
+
+    # Bad idea but works for MVP w/o UI
+    redirect_uri: str = "http://localhost/api/v1/auth/vk/endpoint"

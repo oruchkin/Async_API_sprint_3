@@ -54,3 +54,11 @@ docker compose up
 
 Создайте пользователя, API `Create user`, и авторизуйтесь получите токен в `Authenticate user`
 В swagger можно авторизоваться справа сверху полученый токен прикрепить к хедеру кнопка `Authorize`
+
+### Token exchange flow
+#### Enable
+https://stackoverflow.com/questions/75323566/how-to-enable-features-like-token-exchange-in-keycloak-from-command-line
+Добавить переменную окружения в Docker
+```
+JAVA_TOOL_OPTIONS="-Dkeycloak.profile.feature.admin_fine_grained_authz=enabled -Dkeycloak.profile.feature.token_exchange=enabled"
+```
