@@ -72,6 +72,15 @@ class KeycloackClient:
         ta = TypeAdapter(list[models.UserEntryModel])
         return ta.validate_python(data)
 
+    async def find_user_by_idp(self, idp: str, id: str) -> models.UserEntryModel | None:
+        url = self._endpoints.get_user_with_idp(idp, id)
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.UserEntryModel])
+        if found := ta.validate_python(data):
+            return found[0]
+
+        return None
+
     async def get_user_with_email(self, email: str) -> models.UserEntryModel:
         """
         Get user by email
@@ -81,7 +90,18 @@ class KeycloackClient:
         ta = TypeAdapter(list[models.UserEntryModel])
         return ta.validate_python(data)[0]
 
-    async def create_user(self, username: str, email: str, password: str) -> None:
+    async def get_user_with_username(self, username: str) -> models.UserEntryModel | None:
+        url = self._endpoints.get_user_with_username(username)
+        data = await self._get(url)
+        ta = TypeAdapter(list[models.UserEntryModel])
+        return ta.validate_python(data)[0]
+
+    async def federate_idp(self, user_id: UUID, idp: str, idp_user_id: str, idp_username: str) -> None:
+        url = self._endpoints.federeated_idp(user_id, idp)
+        payload = {"userId": idp_user_id, "userName": idp_username}  # do we really need username?
+        await self._post(url, payload)
+
+    async def create_user(self, username: str, email: str | None = None, password: str | None = None) -> None:
         """
         Creates new user.
         For Keycloak email is optional field but we need it for future communications.
@@ -89,13 +109,16 @@ class KeycloackClient:
         # username is required
         payload = {
             "username": username or email,
-            "email": email,
             "emailVerified": False,
             "enabled": True,
             "groups": [],
             "requiredActions": [],
-            "credentials": [{"type": "password", "value": password, "temporary": False}],
         }
+        if email:
+            payload["email"] = email
+        if password:
+            payload["credentials"] = [{"type": "password", "value": password, "temporary": False}]
+
         url = self._endpoints.create_user()
         await self._post(url, payload)
 
@@ -136,6 +159,23 @@ class KeycloackClient:
         url = self._endpoints.delete_user_sessions(user_id)
         await self._send("POST", url)
 
+    async def token_exchange_direct_naked_impersonation(self, user_id: UUID) -> models.TokenModel:
+        # https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
+        # That's really bad idea to use such flow, most unsecure way, try to not use it in production!
+        url = self._endpoints.token_exchange()
+        params = {
+            "client_id": self._settings.client,
+            "client_secret": self._settings.secret,
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "requested_subject": user_id,
+            "scope": "openid",
+        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.post(url, data=params) as response:
+                data = await self._handle_failed_response(response)
+                return models.TokenModel.model_validate(data)
+
     @staticmethod
     def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
         match verb:
@@ -151,11 +191,11 @@ class KeycloackClient:
                 return session.patch
 
     @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
-    async def _send(self, verb: Verb, url: str, payload: Any | None = None) -> Any:
+    async def _send(self, verb: Verb, url: str, payload: Any | None = None, data: Any | None = None) -> Any:
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             func = KeycloackClient._get_func_by_verb(verb, session)
-            async with func(url, json=payload) as response:
+            async with func(url, json=payload, data=data) as response:
                 return await self._handle_failed_response(response)
 
     async def _get(self, url: str) -> Any:

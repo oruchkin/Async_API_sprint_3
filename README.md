@@ -66,3 +66,10 @@ And `view-clients` to get id of the current client.
 
 ### Tips
 Open Dev tab in browser to see what requests Keycloak UI is sending to the API
+
+
+### Keycloak external IDP
+Выглядит так, что мы можем использовать только Direct Naked Impersonation,
+т.к. external to internal token exchange требуют валидации токена, который VK ID не предоставляет
+Чтобы настроить Keycloak внимательно следуем инструкции:
+https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
