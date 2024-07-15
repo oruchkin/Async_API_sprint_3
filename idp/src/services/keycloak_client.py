@@ -101,6 +101,13 @@ class KeycloackClient:
         payload = {"userId": idp_user_id, "userName": idp_username}  # do we really need username?
         await self._post(url, payload)
 
+    async def delete_federated_idp(self, user_id: UUID, idp: str) -> None:
+        """
+        Disconnect user from external idp
+        """
+        url = self._endpoints.federeated_idp(user_id, idp)
+        await self._send("DELETE", url)
+
     async def create_user(self, username: str, email: str | None = None, password: str | None = None) -> None:
         """
         Creates new user.
