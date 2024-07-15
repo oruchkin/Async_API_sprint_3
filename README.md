@@ -73,3 +73,7 @@ Open Dev tab in browser to see what requests Keycloak UI is sending to the API
 т.к. external to internal token exchange требуют валидации токена, который VK ID не предоставляет
 Чтобы настроить Keycloak внимательно следуем инструкции:
 https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
+
+#### VK ID
+Просто делаем все, как тут сказано
+https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/create-application
