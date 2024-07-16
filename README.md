@@ -22,7 +22,7 @@ docker-compose --profile idp --profile admin up
 
 ## Детальнее про задачи 
 
-## - подключение внешних провайдеров:
+### - подключение внешних провайдеров:
 
 ### Keycloak external IDP
 Мыможем использовать только Direct Naked Impersonation,
@@ -43,7 +43,7 @@ https://keycloakthemes.com/blog/how-to-setup-sign-in-with-google-using-keycloak
  - используйте `http://localhost:8000/*`   - в качестве  `Valid redirect URIs`.
  - Для `Google IDP` выберите `Post login flow` как `None`.
 
-## - партицирование:
+### - партицирование:
 
 для того чтобы создать партиции в таблице необходимо:
 - инициализировать кейклок,
