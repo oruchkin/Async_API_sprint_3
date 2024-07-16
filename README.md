@@ -1,3 +1,71 @@
+## Проектная работа 8 спринта
+
+В этом спринте наша команда:
+
+- Создала интеграцию `Auth-сервиса` `idp` с административной панелью (вход из админки `django`)
+- Добавила трассировку через `Jaeger`
+- Добавила в сервис `idp` механизм ограничения количества запросов к серверу `rate-limit`
+- Добавила внешние авторизации через `VK` и `Google`
+- Партицировала таблицу `users`
+
+
+### Как запустить проект:
+из папки `infra` запускаем:
+```
+docker-compose --profile idp --profile admin up
+```
+запустятся `postgres`, `redis`, `idp`, `keycloak`, `jaeger`, `django-admin`
+
+
+## Детальнее про задачи 
+
+## - подключение внешних провайдеров:
+
+### Keycloak external IDP
+Мыможем использовать только Direct Naked Impersonation,
+т.к. external to internal token exchange требуют валидации токена, который VK ID не предоставляет
+Чтобы настроить Keycloak внимательно следуем инструкции:
+https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
+
+#### VK ID
+Просто делаем все, как тут сказано
+https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/create-application
+
+#### Google
+Настройка Google с использованием этого руководства: 
+
+https://keycloakthemes.com/blog/how-to-setup-sign-in-with-google-using-keycloak
+
+- Включите поток аутентификации - Standard flow: 
+ - используйте `http://localhost:8000/*`   - в качестве  `Valid redirect URIs`.
+ - Для `Google IDP` выберите `Post login flow` как `None`.
+
+## - партицирование:
+
+для того чтобы создать партиции в таблице необходимо:
+- инициализировать кейклок,
+- после его инициализации мы запускаем скрипт `./run_partitioning.sh` (скрипт находится в папке `idp/db_partitioning`)
+
+в скритпе есть две переменных `POSTGRES_HOST` и `POSTGRES_DB` которые отличаются от базового .env
+там прописаны примеры которые перезаписывают значение для локального применения (их можно менять)
+
+скрипт создаст партиции в таблице `user_entity`
+
+![партиции](readme/partitions.png)
+
+
+----
+# ВНИМАНИЕ!
+### Ниже данные с предыдущих спринтов 
+### то что ниже не относится к спринту 8
+
+---
+## Спринт 7
+ридми спринта 7 находится здесь:
+
+[ссылка на README.md 7 спринта](https://github.com/oruchkin/Async_API_sprint_3/tree/main/idp#readme)
+
+---
 ## Проектная работа 6 спринта
 
 В этом спринте наша команда: 
@@ -68,17 +136,3 @@ And `view-clients` to get id of the current client.
 Open Dev tab in browser to see what requests Keycloak UI is sending to the API
 
 
-### Keycloak external IDP
-Выглядит так, что мы можем использовать только Direct Naked Impersonation,
-т.к. external to internal token exchange требуют валидации токена, который VK ID не предоставляет
-Чтобы настроить Keycloak внимательно следуем инструкции:
-https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
-
-#### VK ID
-Просто делаем все, как тут сказано
-https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/create-application
-
-#### Google
-Setup Google using this guide https://keycloakthemes.com/blog/how-to-setup-sign-in-with-google-using-keycloak
-Enable Authentication flow - Standard flow and use `http://localhost:8000/*` as Valid redirect URIs
-For Google IDP select Post login flow to None
