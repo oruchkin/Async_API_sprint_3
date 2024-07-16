@@ -60,6 +60,7 @@ class OIDCClient:
             "scope": "openid",
             "kc_idp_hint": idp,
         }
+        # это хардкод для запуска девелоп окружения (в проде должено быть имя контейнера (у нас его нет))
         return f"http://localhost:32547/realms/master/protocol/openid-connect/auth?{urllib.parse.urlencode(params)}"
 
     async def code_flow(self, code: str, redirect_uri: str) -> models.TokenModel:
