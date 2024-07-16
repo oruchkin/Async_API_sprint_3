@@ -30,7 +30,7 @@ docker-compose --profile idp --profile admin up
 Чтобы настроить Keycloak внимательно следуем инструкции:
 https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
 
-#### `VK ID`
+#### VK ID
 Просто делаем все, как тут сказано
 https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/create-application
 
