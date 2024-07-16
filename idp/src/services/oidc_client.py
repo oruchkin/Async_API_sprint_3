@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from functools import lru_cache
 
 import aiohttp
@@ -42,6 +43,32 @@ class OIDCClient:
             "grant_type": "password",
             "username": username,
             "password": password,
+        }
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        discovery = await self.get_discovery()
+        url = discovery["token_endpoint"]
+        async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with session.post(url, data=payload) as response:
+                data = await self._ensure_ok_response(response)
+                return models.TokenModel.model_validate(data)
+
+    def code_flow_url(self, idp: str, redirect_uri: str) -> str:
+        params = {
+            "client_id": self._client.client,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": "openid",
+            "kc_idp_hint": idp,
+        }
+        return f"http://localhost:32547/realms/master/protocol/openid-connect/auth?{urllib.parse.urlencode(params)}"
+
+    async def code_flow(self, code: str, redirect_uri: str) -> models.TokenModel:
+        payload = {
+            "client_id": self._client.client,
+            "client_secret": self._client.secret,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": redirect_uri,
         }
         headers = {"Content-type": "application/x-www-form-urlencoded"}
         discovery = await self.get_discovery()
