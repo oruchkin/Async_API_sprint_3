@@ -77,3 +77,8 @@ https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
 #### VK ID
 Просто делаем все, как тут сказано
 https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/create-application
+
+#### Google
+Setup Google using this guide https://keycloakthemes.com/blog/how-to-setup-sign-in-with-google-using-keycloak
+Enable Authentication flow - Standard flow and use `http://localhost:8000/*` as Valid redirect URIs
+For Google IDP select Post login flow to None
