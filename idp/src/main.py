@@ -8,7 +8,7 @@ from core.auth import BasicAuthBackend
 from core.errors_utils import error_to_json_response
 from core.lifecycle import lifespan
 from core.logger import LOGGING
-from core.tracer import configure_tracer
+from core.tracer import configure_tracer, jaeger_settings
 from db.redis import get_redis
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
@@ -72,7 +72,8 @@ async def add_trace_id(request: Request, call_next):
 
 # middlewares are executed from the bottom to top
 # enabled opentelemetry after we set Request-Id but before we are adding attributes
-configure_tracer(app)
+if jaeger_settings.enable_tracer:
+    configure_tracer(app)
 
 
 @app.middleware("http")

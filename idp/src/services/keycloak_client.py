@@ -3,6 +3,7 @@ import json
 from functools import lru_cache
 from typing import Any, Callable, Literal, cast
 from uuid import UUID
+from http import HTTPStatus
 
 import aiohttp
 import backoff
@@ -278,12 +279,12 @@ class KeycloackClient:
         data = json.loads(raw)
         error = self._get_error_message(data)
 
-        if response.status == 401:
+        if response.status == HTTPStatus.UNAUTHORIZED:
             self._access_token = None
             self._access_token_issued = None
             raise errors.NotAuthorizedError(error)
 
-        if response.status == 404:
+        if response.status == HTTPStatus.NOT_FOUND:
             raise errors.NotFoundError(error)
 
         raise errors.ValidationError(error)

@@ -14,15 +14,15 @@ from .settings import JaegerSettings
 logger = logging.getLogger(__name__)
 
 
+jaeger_settings = JaegerSettings()  # type: ignore
 def configure_tracer(app: FastAPI) -> None:
-    settings = JaegerSettings()  # type: ignore
-    logger.warn(f"Connecting Jaeger to {settings.host}:{settings.port}")
+    logger.warn(f"Connecting Jaeger to {jaeger_settings.host}:{jaeger_settings.port}")
     trace.set_tracer_provider(TracerProvider(resource=Resource({ResourceAttributes.SERVICE_NAME: "idp-api"})))
     trace.get_tracer_provider().add_span_processor(
         BatchSpanProcessor(
             JaegerExporter(
-                agent_host_name=settings.host,
-                agent_port=settings.port,
+                agent_host_name=jaeger_settings.host,
+                agent_port=jaeger_settings.port,
             )
         )
     )

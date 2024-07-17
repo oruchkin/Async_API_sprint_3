@@ -9,6 +9,7 @@ from typing import Any, Callable, Literal
 import aiohttp
 import models
 import services.errors as errors
+from http import HTTPStatus
 from core.settings import VKSettings
 from db.redis import get_redis
 from fastapi import Depends
@@ -106,12 +107,12 @@ class VKClient:
         data = json.loads(raw)
         error = self._get_error_message(data)
 
-        if response.status == 401:
+        if response.status == HTTPStatus.UNAUTHORIZED:
             self._access_token = None
             self._access_token_issued = None
             raise errors.NotAuthorizedError(error)
 
-        if response.status == 404:
+        if response.status == HTTPStatus.NOT_FOUND:
             raise errors.NotFoundError(error)
 
         raise errors.ValidationError(error)

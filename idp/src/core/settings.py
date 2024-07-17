@@ -18,6 +18,7 @@ class JaegerSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="JAEGER_")
     host: str
     port: int
+    enable_tracer: bool = False
 
 
 class VKSettings(BaseSettings):
