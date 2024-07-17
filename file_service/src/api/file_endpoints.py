@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
 from src.db.db import get_db
@@ -35,7 +36,7 @@ async def delete_file(short_name: str, db: BaseProvider = Depends(get_db)):
     file_service = FileService(db, MinioStorage())
 
     if not await file_service.has_permission(short_name):
-        raise HTTPException(status_code=403, detail="Access forbidden")
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access forbidden")
 
     await file_service.delete_file(short_name)
     return {"detail": "File successfully deleted"}
@@ -50,7 +51,7 @@ async def generate_presigned_url(short_name: str, expires_in: int = 3600, db: Ba
     file_service = FileService(db, MinioStorage())
 
     if not await file_service.has_permission(short_name):
-        raise HTTPException(status_code=403, detail="Access forbidden")
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access forbidden")
 
     presigned_url = await file_service.generate_presigned_url(short_name, expires_in)
     return {"presigned_url": presigned_url}
@@ -65,7 +66,7 @@ async def redirect_download(short_name: str, expires_in: int = 3600, db: BasePro
     file_service = FileService(db, MinioStorage())
 
     if not await file_service.has_permission(short_name):
-        raise HTTPException(status_code=403, detail="Access forbidden")
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access forbidden")
 
     presigned_url = await file_service.generate_presigned_url(short_name, expires_in)
     return RedirectResponse(url=presigned_url)
