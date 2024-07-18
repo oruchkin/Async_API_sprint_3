@@ -209,6 +209,7 @@ services:
 
   idp:
     <<: *idp-base
+    ports: [8000:8000]
     depends_on: [postgres]
     env_file: [.env]
     profiles: [all, api, idp]
@@ -231,6 +232,7 @@ services:
     build:
       context: ./../idp/keycloak
     expose: [8080]
+    ports: [8080:8080]
     depends_on: [postgres]
     env_file: [.env]
     profiles: [api, idp]
