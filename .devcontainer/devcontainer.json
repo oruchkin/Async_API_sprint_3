@@ -13,9 +13,13 @@
                 "esbenp.prettier-vscode",
                 "dbaeumer.vscode-eslint",
                 "ms-azuretools.vscode-docker",
-                "EditorConfig.EditorConfig"
+                "EditorConfig.EditorConfig",
+                "jebbs.plantuml"
             ],
             "settings": {
+                "plantuml.server": "http://host.docker.internal:8080",
+                "plantuml.render": "PlantUMLServer",
+                "plantuml.exportOutDir": "docs/diagrams/out",
                 "python.pythonPath": "/usr/local/bin/python",
                 "files.exclude": {
                     "out": true, // set this to true to hide the "out" folder with the compiled JS files

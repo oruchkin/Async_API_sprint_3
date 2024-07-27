@@ -1,0 +1,60 @@
+@startuml diagram
+skinparam componentStyle uml2
+package IDP {
+    component IDPAPI
+    component Keycloak
+    database KCPostgres
+    
+    IDPAPI --> Keycloak: Proxy
+    Keycloak --> KCPostgres
+}
+
+package UGC {
+    component UGCAPI
+    component Queue
+
+    UGCAPI --> Queue
+}
+
+package S3 {
+    component S3API
+    component Minio
+    database S3Postgres
+
+    S3API --> Minio
+    S3API --> S3Postgres
+}
+
+actor Админ as Admin
+actor Клиент as Client
+component API
+component Django
+component IDP.API
+component ETL
+component FileAPI
+component S3.API
+component UGC.API
+database KCPostgres
+database MoviesPostgres
+database Elastic
+database ETLRedis
+database APIRedis
+
+Admin --> Django: Управление контентом
+Django -> IDP.API: Auth
+Django --> MoviesPostgres
+Django --> FileAPI
+Django --> S3.API
+MoviesPostgres --> ETL
+ETL --> Elastic
+ETL --> ETLRedis: State
+
+
+Client --> API
+Client --> UGC.API: Activities
+Client --> S3.API
+API -left-> IDP.API: Auth
+API --> Elastic
+API --> APIRedis: Cache
+
+@enduml
