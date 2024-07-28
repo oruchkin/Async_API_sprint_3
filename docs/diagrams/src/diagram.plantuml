@@ -11,9 +11,9 @@ package IDP {
 
 package UGC {
     component UGCAPI
-    component Queue
+    component TBD
 
-    UGCAPI --> Queue
+    UGCAPI --> TBD: To be\ndefiend
 }
 
 package S3 {
@@ -40,7 +40,7 @@ database Elastic
 database ETLRedis
 database APIRedis
 
-Admin --> Django: Управление контентом
+Admin --> Django: Управление\nконтентом
 Django -> IDP.API: Auth
 Django --> MoviesPostgres
 Django --> FileAPI
