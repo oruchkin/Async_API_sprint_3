@@ -139,3 +139,19 @@ And `view-clients` to get id of the current client.
 Open Dev tab in browser to see what requests Keycloak UI is sending to the API
 
 
+# PlantUML
+Run with
+```
+docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+```
+update vscode settings (https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml#use-plantuml-server-as-render)
+```
+"plantuml.server": "http://host.docker.internal:8080",
+"plantuml.render": "PlantUMLServer",
+"plantuml.exportOutDir": "docs/diagrams/out",
+```
+Alt+D to preview
+
+Online editor https://www.plantuml.com/plantuml or https://www.planttext.com/
+
+![diagram](docs/diagrams/out/diagram.png)
