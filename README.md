@@ -151,3 +151,5 @@ update vscode settings (https://marketplace.visualstudio.com/items?itemName=jebb
 "plantuml.exportOutDir": "docs/diagrams/out",
 ```
 Alt+D to preview
+
+![diagram](docs/diagrams/out/diagram.png)
