@@ -3,3 +3,5 @@ gevent~=24.2.1
 gunicorn==22.0.0
 uvicorn==0.29.0
 requests~=2.32.2
+setuptools~=71.1.0 # required by flasgger
+flasgger==0.9.7b2
