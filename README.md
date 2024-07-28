@@ -152,4 +152,6 @@ update vscode settings (https://marketplace.visualstudio.com/items?itemName=jebb
 ```
 Alt+D to preview
 
+Online editor https://www.plantuml.com/plantuml or https://www.planttext.com/
+
 ![diagram](docs/diagrams/out/diagram.png)
