@@ -243,14 +243,6 @@ services:
     expose: [6831/udp, 6831]
     profiles: [api, api-dev, idp-dev, idp]
 
-  ugc:
-    build:
-      context: ./../ugc
-      dockerfile: Dockerfile
-    env_file: [.env, .env.dev]
-    profiles: [ugc]
-    ports: [54378:8000]
-
 volumes:
   dbstorage:
     name: admin-panel-db
