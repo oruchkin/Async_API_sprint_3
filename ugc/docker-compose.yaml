@@ -1,11 +1,11 @@
 services:
 
-  ugc:
+  api:
     build:
-      context: ./../api
+      context: ./api
       dockerfile: Dockerfile
-    env_file: [.env, .env.dev]
     ports: [54378:8000]
+    depends_on: [kafka-0, kafka-1, kafka-2]
     profiles: [ugc]
 
   ui:
@@ -18,7 +18,7 @@ services:
 
   kafka-0:
     image: bitnami/kafka:3.4
-    ports: [9094:9094]
+    ports: [9094:9094, 9092:9092]
     volumes: [kafka_0_data:/bitnami/kafka]
     environment:
       - KAFKA_ENABLE_KRAFT=yes

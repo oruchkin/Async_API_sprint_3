@@ -1,5 +1,9 @@
+import logging
+
 from flasgger import Swagger
 from flask import Flask
+from services.kafka_client import KafkaClient
+from services.kafka_settings import KafkaSettings
 
 app = Flask(__name__)
 
@@ -7,7 +11,11 @@ app = Flask(__name__)
 swagger = Swagger(app)
 
 
-@app.route('/hello-world')
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+
+@app.route("/hello-world")
 def hello_world():
     """Example endpoint returning a list of colors by palette
     This is using docstrings for specifications.
@@ -37,8 +45,13 @@ def hello_world():
         examples:
           rgb: ['red', 'green', 'blue']
     """
-    return 'Hello, World!'
+
+    settings = KafkaSettings()
+    client = KafkaClient(settings)
+    client.ensure_topic("movies_progress")
+
+    return "Hello, World!"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()

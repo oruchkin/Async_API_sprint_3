@@ -1,4 +1,6 @@
-FROM python:3.12-alpine
+FROM python:3.11-alpine
+# kafka.admin doesn't work with python-3.12 https://github.com/dpkp/kafka-python/issues/2412
+
 
 WORKDIR /opt/app
 
