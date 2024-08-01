@@ -1,7 +1,9 @@
+import json
 import logging
 
 from flasgger import Swagger
-from flask import Flask
+from flask import Flask, request
+from models.movie_progress import MovieProgress
 from services.kafka_client import KafkaClient
 from services.kafka_settings import KafkaSettings
 
@@ -15,42 +17,49 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-@app.route("/hello-world")
-def hello_world():
-    """Example endpoint returning a list of colors by palette
-    This is using docstrings for specifications.
+supported = ["movie_progress"]
+
+
+@app.route("/event", methods=["POST"])
+def post_event():
+    """
+    Endpoint to collect user generated events
     ---
     parameters:
-      - name: palette
-        in: path
-        type: string
-        enum: ['all', 'rgb', 'cmyk']
+      - in: body
+        name: body
         required: true
-        default: all
+        description: Request body
+        example: { "type": "movie_progress", "user_id": "4518e644-1ff3-4003-a14e-99dfe3fdd7ab", "movie_id": "e9897504-9b73-40bb-a22e-815daf7a190d", "progress": 123 }
+    requestBody:
+        required: true
+        content:
+          application/json:
+            $ref: '#/definitions/Event'
     definitions:
-      Palette:
+      Event:
         type: object
         properties:
-          palette_name:
-            type: array
-            items:
-              $ref: '#/definitions/Color'
-      Color:
-        type: string
+          type: string
     responses:
       200:
-        description: A list of colors (may be filtered by palette)
-        schema:
-          $ref: '#/definitions/Palette'
-        examples:
-          rgb: ['red', 'green', 'blue']
+        description: Doesn't return any results
     """
 
     settings = KafkaSettings()
     client = KafkaClient(settings)
-    client.ensure_topic("movies_progress")
 
-    return "Hello, World!"
+    payload = request.json
+    if not isinstance(payload, dict):
+        return json.dumps({"success": False}), 400, {"ContentType": "application/json"}
+
+    if payload.get("type") == "movie_progress":
+        # For simplicity get user_id from the post body
+        # For access_token decode use idp/src/core/verification.py
+        model = MovieProgress.model_validate(payload)
+        client.post_movie_progress(model)
+
+    return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
 
 
 if __name__ == "__main__":
