@@ -1,5 +1,5 @@
 #The base image for the container 
-FROM python:3.12-slim-bullseye
+FROM python:3.11-slim-bullseye
  
 # Keeps Python from generating .pyc files in the container 
 ENV PYTHONDONTWRITEBYTECODE=1 
@@ -30,6 +30,9 @@ COPY file_service/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
 COPY idp/requirements.txt .
+RUN python -m pip install -r requirements.txt
+
+COPY ugc/api/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
 #create a non root user to access the container

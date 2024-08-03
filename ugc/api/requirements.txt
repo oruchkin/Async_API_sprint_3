@@ -1,0 +1,10 @@
+flask~=3.0.3
+gevent~=24.2.1
+gunicorn==22.0.0
+uvicorn==0.29.0
+requests~=2.32.2
+setuptools~=71.1.0 # required by flasgger
+flasgger==0.9.7b2
+kafka-python==2.0.2 
+pydantic==2.6.4
+pydantic-settings~=2.2.1
