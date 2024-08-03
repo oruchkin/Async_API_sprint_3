@@ -15,10 +15,7 @@ from locust import HttpUser, TaskSet, between, events, task
 
 # ClickHouse configuration
 clickhouse_host = "host.docker.internal"
-clickhouse_port = "YOUR_CLICKHOUSE_PORT"
-clickhouse_user = "YOUR_CLICKHOUSE_USER"
-clickhouse_password = "YOUR_CLICKHOUSE_PASSWORD"
-clickhouse_database = "YOUR_CLICKHOUSE_DATABASE"
+CLICKHOUSE_DB = "locust_test"
 
 def generate_random_data(batch_size):
     return [
@@ -28,10 +25,6 @@ def generate_random_data(batch_size):
         )
         for _ in range(batch_size)
     ]
-
-
-CLICKHOUSE_CLUSTER = "company_cluster"
-CLICKHOUSE_DB = "locust_test"
 
 
 class ClickHouseTasks(TaskSet):
