@@ -1,0 +1,31 @@
+version: '3.5'
+
+services:
+  etl_service:
+    build: .
+    environment:
+      - KAFKA_SERVER=kafka:9092
+      - CLICKHOUSE_SERVER=clickhouse
+    depends_on:
+      - kafka
+      - clickhouse
+    profiles: [etl]
+
+  kafka:
+    image: bitnami/kafka:3.4
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"
+
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    ports:
+      - "2181:2181"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23
+    ports:
+      - "8123:8123"
+      - "9000:9000"

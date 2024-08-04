@@ -15,7 +15,7 @@ services:
     ports: [8080:8080]
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-0:9092
-      - KAFKA_CLUSTERS_0_NAME=kraft 
+      - KAFKA_CLUSTERS_0_NAME=kraft
     profiles: [ugc, ugc-dev]
 
   kafka-0:
@@ -51,7 +51,7 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     volumes: [kafka_1_data:/bitnami/kafka]
     profiles: [ugc, ugc-dev]
-   
+
   kafka-2:
     image: bitnami/kafka:3.4
     ports: [9096:9096]
@@ -72,10 +72,7 @@ services:
 volumes:
   kafka_0_data:
     name: ya.practicum-kafka-0
-    external: true
   kafka_1_data:
     name: ya.practicum-kafka-1
-    external: true
   kafka_2_data:
     name: ya.practicum-kafka-2
-    external: true
