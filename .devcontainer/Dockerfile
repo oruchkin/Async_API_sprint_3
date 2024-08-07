@@ -35,5 +35,8 @@ RUN python -m pip install -r requirements.txt
 COPY ugc/api/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
+COPY ugc/compare/requirements.txt .
+RUN python -m pip install -r requirements.txt
+
 #create a non root user to access the container
 RUN adduser -u 5678 --disabled-password --gecos "" vscode
