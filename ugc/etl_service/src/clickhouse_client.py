@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ClickHouseClient:
-    def __init__(self, clickhouse_server: str = 'localhost'):
+    def __init__(self, clickhouse_server: str):
         self.client = Client(clickhouse_server)
 
     def insert_data(self, data: List):

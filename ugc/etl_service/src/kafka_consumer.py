@@ -18,8 +18,25 @@ class KafkaConsumerService:
         logging.basicConfig(level=logging.INFO)
 
     def consume_messages(self):
+        max_messages_to_fetch = 100000
+
+        while True:
+            raw_messages = self.kafka_consumer.poll(timeout_ms=1000, max_records=max_messages_to_fetch)
+            messages = []
+
+            for topic_partition, messages_batch in raw_messages.items():
+                for message in messages_batch:
+                    data = json.loads(message.value.decode('utf-8'))
+                    logging.info(f"Received data from kafka: {data}")
+                    transformed_data = transform_data(data)
+                    messages.append(transformed_data)
+
+            if messages:
+                self.clickhouse_client.insert_data(messages)
+                self.kafka_consumer.commit()
+
+    def consume_messages_old_way(self):
         messages = []
-        # чтобы в базу попали значения нужно отправить минимум batch_to_insert_db задач
         batch_to_insert_db = 5
 
         for message in self.kafka_consumer:
