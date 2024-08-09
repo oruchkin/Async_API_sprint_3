@@ -1,8 +1,9 @@
-from kafka import KafkaConsumer
 import json
-from transformers import transform_data
-from clickhouse_client import ClickHouseClient
 import logging
+
+from clickhouse_client import ClickHouseClient
+from kafka import KafkaConsumer
+from transformers import transform_data
 
 
 class KafkaConsumerService:
@@ -18,7 +19,7 @@ class KafkaConsumerService:
         logging.basicConfig(level=logging.INFO)
 
     def consume_messages(self):
-        max_messages_to_fetch = 100000
+        max_messages_to_fetch = 100_000
 
         while True:
             raw_messages = self.kafka_consumer.poll(timeout_ms=1000, max_records=max_messages_to_fetch)
