@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 # ignore import errors as it's controlled by the pytest.ini
 from api.app import app  # type: ignore
 from services.kafka_client import KafkaClient  # type: ignore
