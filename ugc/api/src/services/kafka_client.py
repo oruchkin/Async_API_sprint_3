@@ -1,6 +1,6 @@
 import logging
 
-from kafka import KafkaProducer
+from aiokafka import AIOKafkaProducer
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.errors import TopicAlreadyExistsError
 from models.movie_progress import MovieProgress
@@ -12,23 +12,26 @@ class KafkaClient:
     _settings: KafkaSettings
     _logger: logging.Logger
     _topics: list[str]
-    _producer: KafkaProducer
+    _producer: AIOKafkaProducer
 
     def __init__(self, settings: KafkaSettings):
         self._settings = settings
         self._logger = logging.getLogger(__name__)
         self._topics = []
-        self._producer = KafkaProducer(bootstrap_servers=settings.server)
+        self._producer = AIOKafkaProducer(bootstrap_servers=settings.server)
 
-    def post_movie_progress(self, data: MovieProgress) -> None:
+    async def post_movie_progress(self, data: MovieProgress) -> None:
         """
         Sends model to the Kafka topic
         """
         self.ensure_topic("movies_progress")
+        await self._producer.start()
         payload = data.model_dump_json().encode("utf-8")
-        self._producer.send(topic="movies_progress", value=payload)
-        self._producer.flush(timeout=10)  # this forcibly sends any messages that are stuck.
-        self._producer.close(timeout=5)
+        try:
+            await self._producer.send_and_wait(topic="movies_progress", value=payload)
+            await self._producer.flush()
+        finally:
+            await self._producer.stop()
 
     def ensure_topic(self, topic_name: str) -> None:
         if not self._settings.ensure_topics or topic_name in self._topics:
