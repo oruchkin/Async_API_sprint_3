@@ -2,7 +2,7 @@ name: Build python app
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, github-build ]
   pull_request:
     branches: [ main ] 
 
