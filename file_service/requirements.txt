@@ -5,6 +5,8 @@ fastapi==0.111.0
 miniopy-async==1.19
 alembic==1.13.1
 Faker==25.2.0
+pydantic==2.6.4
+pydantic-settings~=2.2.1
 psycopg2-binary==2.9.9
 shortuuid==1.0.13
 uvicorn==0.29.0
