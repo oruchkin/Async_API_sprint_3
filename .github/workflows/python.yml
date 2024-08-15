@@ -4,7 +4,8 @@ on:
   push:
     branches: [ main, github-build ]
   pull_request:
-    branches: [ main ] 
+    types: [ synchronize, edited ]
+    # branches: [ main ] 
 
 jobs:
   build:
