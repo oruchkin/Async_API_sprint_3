@@ -11,3 +11,4 @@ psycopg2-binary==2.9.9
 shortuuid==1.0.13
 uvicorn==0.29.0
 SQLAlchemy==2.0.30
+pytest-asyncio~=0.23.5
