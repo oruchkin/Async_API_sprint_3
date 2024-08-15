@@ -14,7 +14,8 @@
                 "dbaeumer.vscode-eslint",
                 "ms-azuretools.vscode-docker",
                 "EditorConfig.EditorConfig",
-                "jebbs.plantuml"
+                "jebbs.plantuml",
+                "github.vscode-github-actions"
             ],
             "settings": {
                 "plantuml.server": "http://host.docker.internal:8080",
