@@ -15,7 +15,8 @@
                 "ms-azuretools.vscode-docker",
                 "EditorConfig.EditorConfig",
                 "jebbs.plantuml",
-                "github.vscode-github-actions"
+                "github.vscode-github-actions",
+                "ms-python.mypy-type-checker"
             ],
             "settings": {
                 "plantuml.server": "http://host.docker.internal:8080",
