@@ -17,6 +17,7 @@ from locust import HttpUser, TaskSet, between, events, task
 clickhouse_host = "host.docker.internal"
 CLICKHOUSE_DB = "locust_test"
 
+
 def generate_random_data(batch_size):
     return [
         (
@@ -36,10 +37,12 @@ class ClickHouseTasks(TaskSet):
         self._client = Client(host=clickhouse_host)
         self._client.execute(f"CREATE DATABASE IF NOT EXISTS {CLICKHOUSE_DB}")
         self._client.execute(f"DROP TABLE IF EXISTS {CLICKHOUSE_DB}.test_data")
-        self._client.execute(f"""
+        self._client.execute(
+            f"""
                              CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB}.test_data
                              (id Int64, value TEXT) Engine=MergeTree() ORDER BY id
-                             """)
+                             """
+        )
 
     def on_stop(self):
         self._client.execute(f"DROP TABLE IF EXISTS {CLICKHOUSE_DB}.test_data")
@@ -63,7 +66,7 @@ class ClickHouseTasks(TaskSet):
             name="read",
             response_time=total,
             response_length=len(result),
-            exception=err
+            exception=err,
         )
 
     @task
@@ -84,7 +87,7 @@ class ClickHouseTasks(TaskSet):
             name="write",
             response_time=total,
             response_length=len(json.dumps(data)),
-            exception=err
+            exception=err,
         )
 
 
@@ -111,4 +114,3 @@ class DatabaseUser(HttpUser):
     #     ClickHouse100Tasks: 1,
     #     ClickHouse10000Tasks: 1
     # }
-

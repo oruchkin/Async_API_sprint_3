@@ -12,4 +12,4 @@ swagger = Swagger(app)
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-from .events import *
+from .events import *  # noqa: F403, F401, E402

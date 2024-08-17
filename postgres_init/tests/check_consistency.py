@@ -38,9 +38,7 @@ def normalize_datetime(value):
     return value
 
 
-def compare_data(
-    sqlite_cursor, pg_cursor, table_name: str, column_mapping: dict
-) -> bool:
+def compare_data(sqlite_cursor, pg_cursor, table_name: str, column_mapping: dict) -> bool:
     sqlite_cursor.execute(f"SELECT * FROM {table_name}")
     sqlite_data = [dict(row) for row in sqlite_cursor.fetchall()]
 
@@ -49,9 +47,7 @@ def compare_data(
     # print(sqlite_data)
     # print(pg_data)
     if len(sqlite_data) != len(pg_data):
-        print(
-            f"Row count mismatch: SQLite has {len(sqlite_data)} rows, PostgreSQL has {len(pg_data)} rows"
-        )
+        print(f"Row count mismatch: SQLite has {len(sqlite_data)} rows, PostgreSQL has {len(pg_data)} rows")
         return False
 
     for sqlite_row, pg_row in zip(sqlite_data, pg_data):
@@ -65,7 +61,8 @@ def compare_data(
 
             if sqlite_value != pg_value:
                 print(
-                    f"Mismatch in column '{sqlite_column}': SQLite value '{sqlite_value}' != PostgreSQL value '{pg_value}'"
+                    f"""Mismatch in column '{sqlite_column}': SQLite value \
+                    '{sqlite_value}' != PostgreSQL value '{pg_value}'"""
                 )
                 return False
 
@@ -101,9 +98,7 @@ class DataIntegrityTest(unittest.TestCase):
 
     def table_integrity(self, table_name):
         """Проверка целостности данных в таблице."""
-        data_is_consistent = compare_data(
-            self.sqlite_cursor, self.pg_cursor, table_name, COLUMN_MAPPING
-        )
+        data_is_consistent = compare_data(self.sqlite_cursor, self.pg_cursor, table_name, COLUMN_MAPPING)
         print(data_is_consistent)
         self.assertTrue(data_is_consistent, "Data inconsistency found")
 
@@ -129,9 +124,7 @@ class DataIntegrityTest(unittest.TestCase):
 
     def test_person_film_work_count(self):
         """Проверяем кол-во на одинаковое кол-во фильмов в table person_film_work."""
-        data = count_raw_in_table(
-            "person_film_work", self.sqlite_cursor, self.pg_cursor
-        )
+        data = count_raw_in_table("person_film_work", self.sqlite_cursor, self.pg_cursor)
         self.assertEqual(data["sqlite_count"], data["pg_count"])
 
     def test_film_work_integrity(self):
