@@ -44,8 +44,9 @@ jobs:
 
     - name: Run mypy
       run: |
-        projects=($(ls -d */))
-        for i in "${projects[@]}"
-        do
-          mypy "$i"
+        # projects=($(ls -d */))
+        # for i in "${projects[@]}"
+        # do
+        #   mypy "$i"
+        find . -name "*.py" -type f -exec mypy '{}' ';'
         done
