@@ -29,7 +29,7 @@ class CustomBackend(BaseBackend):
             response = User.objects.get_or_create(
                 id=data["user_id"],
             )
-            user: UserModel = cast(UserModel, response[0])
+            user = cast(UserModel, response[0])
             user.email = data["email"]
             user.is_admin = True  # Roles.ADMIN in data.get("role", [])
             user.is_active = True  # data.get("email_verified")
@@ -57,4 +57,4 @@ class CustomBackend(BaseBackend):
             if response.status_code != http.HTTPStatus.OK:
                 return None
 
-            return response.json()
+            return cast(dict, response.json())
