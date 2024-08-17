@@ -19,7 +19,10 @@ SORT_OPTION = Literal["imdb_rating", "-imdb_rating"]
 
 
 @router.get(
-    "/", response_model=list[Film], summary="Список всех фильмов", description="Возвращает полный список фильмов"
+    "/",
+    response_model=list[Film],
+    summary="Список всех фильмов",
+    description="Возвращает полный список фильмов",
 )
 async def list_films(
     response: Response,

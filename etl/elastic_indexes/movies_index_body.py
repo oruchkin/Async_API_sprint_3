@@ -20,7 +20,7 @@ movies_index_body = {
                         "russian_stop",
                         "russian_stemmer",
                     ],
-                }
+                },
             },
         },
     },
