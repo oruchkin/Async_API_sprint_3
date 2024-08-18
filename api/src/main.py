@@ -1,7 +1,9 @@
 import logging.config
+import os
 import secrets
 import string
 
+import sentry_sdk
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -17,6 +19,19 @@ logging.config.dictConfig(LOGGING)
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+
+if sentry_dsn := os.getenv("FASTAPI_SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for tracing.
+        traces_sample_rate=1.0,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of sampled transactions.
+        # We recommend adjusting this value in production.
+        profiles_sample_rate=1.0,
+    )
 
 app = FastAPI(
     title="Read-only API для онлайн-кинотеатра",

@@ -14,3 +14,4 @@ opentelemetry-instrumentation-fastapi==0.38b0
 opentelemetry-exporter-jaeger==1.17.0 
 backoff~=2.2.1
 aiohttp==3.9.5
+sentry-sdk[fastapi]
