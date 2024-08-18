@@ -42,7 +42,7 @@ jobs:
         tests=($(find . -name "__init__.py" -type f | grep -oP '^.*/tests/__init__\.py'  | sed 's/__init__.py//'))
         for i in "${tests[@]}"
         do
-          if [[ $i =~ *(cache|functional)* ]]; then continue; fi
+          if [[ $i =~ (cache|functional)* ]]; then continue; fi
           echo "Running tests in $i"
           pytest $i --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
         done
