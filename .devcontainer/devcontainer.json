@@ -83,5 +83,5 @@
     "forwardPorts": [
         8000
     ],
-    "postCreateCommand": "pip install -r api/requirements.txt"
+    "postCreateCommand": "find . -name \"requirements.txt\" -type f -exec pip install -r '{}' ';'"
 }

@@ -35,7 +35,7 @@ class FilmService(ServiceABC):
     ) -> list[Film]:
         "Возвращает все фильмы из базы."
         from_index = (page_number - 1) * page_size
-        query = {"match_all": {}}
+        query: dict = {"match_all": {}}
 
         if genre:
             query = {"nested": {"path": "genres", "query": {"bool": {"must": [{"match": {"genres.id": genre}}]}}}}

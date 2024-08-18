@@ -16,6 +16,8 @@ class PersonService(ServiceABC):
         if doc := await self._get_from_elastic("persons", person_id):
             return Person(**doc)
 
+        return None
+
     async def search(self, search: str, page_number: int = 1, page_size: int = 50) -> list[Person]:
         query = {"bool": {"must": [{"match": {"full_name": search}}]}}
         entities = await self._query_from_elastic("persons", query, page_size, (page_number - 1) * page_size)

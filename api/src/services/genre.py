@@ -28,6 +28,8 @@ class GenreService(ServiceABC):
         if doc := await self._get_from_elastic("genres", genre_id):
             return Genre(**doc)
 
+        return None
+
 
 @lru_cache()
 def get_genre_service(
