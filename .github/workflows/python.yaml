@@ -52,3 +52,10 @@ jobs:
           mypy $i/*/*.py
         # find . -name "*.py" -type f -exec mypy '{}' ';'
         done
+
+    - name: Notify telegram
+      run: |
+        curl -X POST \
+          -H 'Content-Type: application/json' \
+          -d '{"chat_id": "${{ secrets.TELEGRAM_BOT_CHAT_ID }}", "text": "${{github.event.pull_request.number}} succeed", "disable_notification": true}' \
+          https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage
