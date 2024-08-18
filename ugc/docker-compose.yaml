@@ -14,7 +14,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - KAFKA_SERVER=kafka-0:9092
-      - SENTRY_DSN=https://e491c36f1a783056f3fc8dd8ef235679@o4507800185733120.ingest.us.sentry.io/4507800197464064
+    env_file:
+      - .env
     depends_on:
       - kafka-0
       - kafka-1
