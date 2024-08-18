@@ -6,10 +6,10 @@ import uuid
 from http import HTTPStatus
 
 import shortuuid
+from db.base_provider import BaseProvider
 from fastapi import HTTPException, UploadFile
-from src.db.base_provider import BaseProvider
-from src.models.file_model import FileDbModel
-from src.services.minio_service import MinioStorage
+from models.file_model import FileDbModel
+from services.minio_service import MinioStorage
 from starlette.responses import StreamingResponse
 
 logger = logging.getLogger(__name__)

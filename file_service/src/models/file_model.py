@@ -3,13 +3,10 @@ from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class FileDbModel(Base):
+class FileDbModel(DeclarativeBase):
     __tablename__ = "files"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

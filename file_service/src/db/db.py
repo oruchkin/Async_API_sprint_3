@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from src.core.settings import fileapi_settings, postgres_settings
 
-from file_service.src.db.base_provider import BaseProvider
-from file_service.src.db.pg_provider import PgProvider
+from .base_provider import BaseProvider
+from .pg_provider import PgProvider
 
 db = fileapi_settings.postgres_db
 
