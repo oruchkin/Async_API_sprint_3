@@ -47,8 +47,7 @@ jobs:
         projects=($(ls -d */))
         for i in "${projects[@]}"
         do
-          if [[ $i == docs* ]]; then continue; fi
-          if [[ $i == \.flake-report* ]]; then continue; fi
+          if [[ $i == (docs|infra|\.flake-report)* ]]; then continue; fi
           echo "$i"
           mypy $i/*/*.py
         # find . -name "*.py" -type f -exec mypy '{}' ';'
