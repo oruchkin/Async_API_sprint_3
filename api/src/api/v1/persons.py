@@ -3,17 +3,17 @@ from http import HTTPStatus
 from typing import get_args
 from uuid import UUID
 
-from api.v1.films import Film
-from api.v1.schemas.pagination import PaginatedParams
-from api.v1.schemas.person import Person, PersonFilm
-from db.redis import get_cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from models.film import Film as FilmModel
-from models.person import Person as PersonModel
 from pydantic import TypeAdapter
-from services.cache.storage import ICache
-from services.film import PERSON_ROLE, FilmService, get_film_service
-from services.person_film import PersonFilmService, get_person_film_service
+from src.api.v1.films import Film
+from src.api.v1.schemas.pagination import PaginatedParams
+from src.api.v1.schemas.person import Person, PersonFilm
+from src.db.redis import get_cache
+from src.models.film import Film as FilmModel
+from src.models.person import Person as PersonModel
+from src.services.cache.storage import ICache
+from src.services.film import PERSON_ROLE, FilmService, get_film_service
+from src.services.person_film import PersonFilmService, get_person_film_service
 
 router = APIRouter()
 

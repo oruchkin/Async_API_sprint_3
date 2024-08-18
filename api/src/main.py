@@ -3,14 +3,14 @@ import secrets
 import string
 
 import uvicorn
-from api.v1 import films, genres, health, persons
-from core.lifecycle import lifespan
-from core.logger import LOGGING
-from core.tracer import configure_tracer
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
+from src.api.v1 import films, genres, health, persons
+from src.core.lifecycle import lifespan
+from src.core.logger import LOGGING
+from src.core.tracer import configure_tracer
 
 load_dotenv()
 logging.config.dictConfig(LOGGING)

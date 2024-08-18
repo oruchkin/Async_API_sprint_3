@@ -1,5 +1,5 @@
-from core.settings import ElasticsearchSettings
 from elasticsearch import AsyncElasticsearch
+from src.core.settings import ElasticsearchSettings
 
 es: AsyncElasticsearch | None = None
 

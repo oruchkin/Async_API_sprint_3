@@ -2,15 +2,15 @@ from http import HTTPStatus
 from typing import Literal
 from uuid import UUID
 
-from api.v1.schemas.film import Film
-from api.v1.schemas.film_detailed import FilmDetailed
-from api.v1.schemas.pagination import PaginatedParams
-from core.settings import DjangoSettings, FileapiSettings
-from db.redis import get_cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import TypeAdapter
-from services.cache.storage import ICache
-from services.film import FilmService, get_film_service
+from src.api.v1.schemas.film import Film
+from src.api.v1.schemas.film_detailed import FilmDetailed
+from src.api.v1.schemas.pagination import PaginatedParams
+from src.core.settings import DjangoSettings, FileapiSettings
+from src.db.redis import get_cache
+from src.services.cache.storage import ICache
+from src.services.film import FilmService, get_film_service
 
 router = APIRouter()
 

@@ -1,11 +1,11 @@
 from functools import lru_cache
 from uuid import UUID
 
-from db.elastic import get_elastic
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
-from models.person import Person
-from services.base import ServiceABC
+from src.db.elastic import get_elastic
+from src.models.person import Person
+from src.services.base import ServiceABC
 
 
 class PersonService(ServiceABC):

@@ -1,7 +1,7 @@
 from redis.asyncio import Redis
-from services.cache.none_storage import NoneCache
-from services.cache.redis_storage import RedisCache
-from services.cache.storage import ICache
+from src.services.cache.none_storage import NoneCache
+from src.services.cache.redis_storage import RedisCache
+from src.services.cache.storage import ICache
 
 redis: Redis | None = None
 

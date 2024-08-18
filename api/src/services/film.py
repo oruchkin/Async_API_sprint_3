@@ -4,11 +4,11 @@ from functools import lru_cache
 from typing import Literal, get_args
 from uuid import UUID
 
-from db.elastic import get_elastic
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
-from models.film import Film
-from services.base import ServiceABC
+from src.db.elastic import get_elastic
+from src.models.film import Film
+from src.services.base import ServiceABC
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 

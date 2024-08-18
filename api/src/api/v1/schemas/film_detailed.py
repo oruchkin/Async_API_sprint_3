@@ -1,4 +1,4 @@
-from api.v1.schemas.film import Film
+from src.api.v1.schemas.film import Film
 
 
 class FilmDetailed(Film):
