@@ -51,4 +51,4 @@ async def verify_token(oidc_client: OIDCClient, access_token: str) -> dict:
     if payload["azp"] != oidc_client.client_id:
         raise ValueError("Wrong client id")
 
-    return payload
+    return dict(payload)

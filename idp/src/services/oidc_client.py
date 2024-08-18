@@ -33,7 +33,7 @@ class OIDCClient:
 
     async def issuer(self) -> str:
         discovery = await self.get_discovery()
-        return discovery["issuer"]
+        return str(discovery["issuer"])
 
     async def password_flow(self, username: str, password: str) -> models.TokenModel:
         payload = {
@@ -106,7 +106,7 @@ class OIDCClient:
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             async with session.post(url, data=payload) as response:
                 data = await self._ensure_ok_response(response)
-                return data["active"]
+                return bool(data["active"])
 
     async def logout(self, refresh_token: str) -> None:
         payload = {
@@ -159,7 +159,7 @@ class OIDCClient:
         url = discovery["jwks_uri"]
         async with aiohttp.ClientSession(timeout=self._timeout) as session:
             async with session.get(url) as response:
-                return await response.json()
+                return dict(await response.json())
 
     async def get_discovery(self) -> dict:
         if not self._discovery_data:
@@ -178,7 +178,7 @@ class OIDCClient:
         # some endpoints do not return anything
         raw = await response.text()
         if response.ok:
-            return json.loads(raw) if raw else {}
+            return dict(json.loads(raw)) if raw else {}
 
         # Possible error response:
         # 'error': 'unauthorized_client'

@@ -1,9 +1,9 @@
 import datetime
 import json
 from functools import lru_cache
+from http import HTTPStatus
 from typing import Any, Callable, Literal, cast
 from uuid import UUID
-from http import HTTPStatus
 
 import aiohttp
 import backoff
@@ -115,7 +115,7 @@ class KeycloackClient:
         For Keycloak email is optional field but we need it for future communications.
         """
         # username is required
-        payload = {
+        payload: dict = {
             "username": username or email,
             "emailVerified": False,
             "enabled": True,
@@ -274,7 +274,7 @@ class KeycloackClient:
         raw = await response.text()
         if response.ok:
             # some api calls return empty response
-            return json.loads(raw) if raw else {}
+            return dict(json.loads(raw)) if raw else {}
 
         data = json.loads(raw)
         error = self._get_error_message(data)
@@ -291,10 +291,10 @@ class KeycloackClient:
 
     def _get_error_message(self, data: dict) -> str:
         if "errorMessage" in data:
-            return data["errorMessage"]
+            return str(data["errorMessage"])
 
         if "error" in data:
-            return data["error"]
+            return str(data["error"])
 
         return "Failed"
 

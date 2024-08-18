@@ -20,8 +20,9 @@ def configure_tracer(app: FastAPI) -> None:
         return
 
     logger.warn(f"Connecting Jaeger to {settings.host}:{settings.port}")
-    trace.set_tracer_provider(TracerProvider(resource=Resource({ResourceAttributes.SERVICE_NAME: "idp-api"})))
-    trace.get_tracer_provider().add_span_processor(
+    tracer = TracerProvider(resource=Resource({ResourceAttributes.SERVICE_NAME: "idp-api"}))
+    trace.set_tracer_provider(tracer)
+    tracer.add_span_processor(
         BatchSpanProcessor(
             JaegerExporter(
                 agent_host_name=settings.host,
