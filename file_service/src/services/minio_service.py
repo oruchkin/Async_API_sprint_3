@@ -42,5 +42,5 @@ class MinioStorage:
     async def generate_presigned_url(self, bucket: str, path: str, expires_in: int = 3600) -> str:
         """Generate a presigned URL for the given object."""
         expires = datetime.timedelta(seconds=expires_in)
-        url = await self.client.presigned_get_object(bucket, path, expires=expires)
+        url: str = await self.client.presigned_get_object(bucket, path, expires=expires)
         return url
