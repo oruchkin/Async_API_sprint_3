@@ -3,9 +3,9 @@ import logging
 import math
 import os
 import uuid
+from http import HTTPStatus
 
 import shortuuid
-from http import HTTPStatus
 from fastapi import HTTPException, UploadFile
 from src.db.base_provider import BaseProvider
 from src.models.file_model import FileDbModel
@@ -49,14 +49,17 @@ class FileService:
 
         except Exception as e:
             logger.error(f"An error occurred: {e}")
-            raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="An error occurred while uploading the file.")
+            raise HTTPException(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="An error occurred while uploading the file."
+            )
 
     async def download_file(self, short_name: str) -> StreamingResponse:
         """
         Download a file from the storage by its short_name.
         """
         if file_db := await self._db.find_by_shortname(short_name):
-            return await self.storage.get_file(file_db.bucket, file_db.path_in_storage)
+            stream: StreamingResponse = await self.storage.get_file(file_db.bucket, file_db.path_in_storage)
+            return stream
 
         raise HTTPException(status_code=404, detail="File not found")
 
@@ -68,7 +71,9 @@ class FileService:
                 await self._db.delete(file_db)
             except Exception as e:
                 logger.error(f"An error occurred while deleting the file: {e}")
-                raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="An error occurred while deleting the file.")
+                raise HTTPException(
+                    status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="An error occurred while deleting the file."
+                )
         else:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="File not found")
 

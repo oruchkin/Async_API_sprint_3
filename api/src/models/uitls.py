@@ -8,6 +8,6 @@ def orjson_dumps(v, *, default) -> str:
 
 
 class BaseOrjsonModel(BaseModel):
-    class Config: 
+    class Config:
         model_validate_json = orjson.loads
         model_dump_json = orjson_dumps

@@ -26,13 +26,13 @@ async def endpoint(
         raise ValueError("Unsupported code type")
 
     token = await client.exchange(state, code, device_id)
-    user = await keycloak.find_user_by_idp("vk", token.user_id)
+    user = await keycloak.find_user_by_idp("vk", str(token.user_id))
     if not user:
         username = f"vk_{token.user_id}"
         await keycloak.create_user(username)
         user = await keycloak.get_user_with_username(username)
         if not user:
             raise ValueError("Failed to create a user")
-        await keycloak.federate_idp(user.id, "vk", token.user_id, username)
+        await keycloak.federate_idp(user.id, "vk", str(token.user_id), username)
 
     return await keycloak.token_exchange_direct_naked_impersonation(user.id)

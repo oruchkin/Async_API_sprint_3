@@ -1,19 +1,19 @@
 import logging
 from http import HTTPStatus
-from typing import Annotated, get_args
+from typing import get_args
 from uuid import UUID
 
-from api.v1.films import Film
-from api.v1.schemas.person import Person, PersonFilm
-from api.v1.schemas.pagination import PaginatedParams
-from db.redis import get_cache
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from models.film import Film as FilmModel
-from models.person import Person as PersonModel
 from pydantic import TypeAdapter
-from services.cache.storage import ICache
-from services.film import PERSON_ROLE, FilmService, get_film_service
-from services.person_film import PersonFilmService, get_person_film_service
+from src.api.v1.films import Film
+from src.api.v1.schemas.pagination import PaginatedParams
+from src.api.v1.schemas.person import Person, PersonFilm
+from src.db.redis import get_cache
+from src.models.film import Film as FilmModel
+from src.models.person import Person as PersonModel
+from src.services.cache.storage import ICache
+from src.services.film import PERSON_ROLE, FilmService, get_film_service
+from src.services.person_film import PersonFilmService, get_person_film_service
 
 router = APIRouter()
 
@@ -21,10 +21,12 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/search",
-            response_model=list[Person],
-            summary="Поиск по персонам",
-            description="Возвращает список персон по поисковому запросу")
+@router.get(
+    "/search",
+    response_model=list[Person],
+    summary="Поиск по персонам",
+    description="Возвращает список персон по поисковому запросу",
+)
 async def search_persons(
     response: Response,
     query: str = Query(..., min_length=3, description="Search string"),
@@ -46,10 +48,12 @@ async def search_persons(
     return persons
 
 
-@router.get("/{person_id}",
-            response_model=Person,
-            summary="Данные по персоне",
-            description="Возвращает подробную информацию о персоне")
+@router.get(
+    "/{person_id}",
+    response_model=Person,
+    summary="Данные по персоне",
+    description="Возвращает подробную информацию о персоне",
+)
 async def get_person(
     person_id: UUID, person_film_service: PersonFilmService = Depends(get_person_film_service)
 ) -> Person:
@@ -60,10 +64,12 @@ async def get_person(
     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
 
 
-@router.get("/{person_id}/films",
-            response_model=list[Film],
-            summary="Фильмы по персоне",
-            description="Возвращает список фильмов, в которых участвовала персона")
+@router.get(
+    "/{person_id}/films",
+    response_model=list[Film],
+    summary="Фильмы по персоне",
+    description="Возвращает список фильмов, в которых участвовала персона",
+)
 async def list_person_films(
     response: Response,
     person_id: UUID,

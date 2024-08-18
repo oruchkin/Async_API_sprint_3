@@ -1,11 +1,11 @@
 from functools import lru_cache
 from uuid import UUID
 
-from db.elastic import get_elastic
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
-from models.genre import Genre
-from services.base import ServiceABC
+from src.db.elastic import get_elastic
+from src.models.genre import Genre
+from src.services.base import ServiceABC
 
 CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -27,6 +27,8 @@ class GenreService(ServiceABC):
         """
         if doc := await self._get_from_elastic("genres", genre_id):
             return Genre(**doc)
+
+        return None
 
 
 @lru_cache()

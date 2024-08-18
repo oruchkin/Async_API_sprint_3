@@ -1,6 +1,7 @@
 import datetime
 import random
 import uuid
+from typing import cast
 from unittest.mock import AsyncMock, Mock, patch
 
 from faker import Faker
@@ -16,7 +17,7 @@ fake = Faker()
 mime_types = ["audio/mpeg", "audio/ogg", "video/mp4", "video/x-msvideo", "video/quicktime"]
 
 
-async def test_upload_file():
+async def test_upload_file() -> None:
     datetime_mock = Mock(wraps=datetime.datetime)
     datetime_mock.now.return_value = datetime.datetime(1999, 1, 1)
     bucket = "mybucket"
@@ -37,11 +38,11 @@ async def test_upload_file():
 
         mock_storage.save.assert_called_once()
         mock_db.add.assert_called_once()
-        model: FileDbModel = mock_db.add.call_args[0][0]
+        model = cast(FileDbModel, mock_db.add.call_args[0][0])
         assert model.path_in_storage.startswith("uploads/1999Q1/")
 
 
-async def test_download_file():
+async def test_download_file() -> None:
     mock_db = AsyncMock(spec=BaseProvider)
     mock_storage = AsyncMock(spec=MinioStorage)
     file_service = FileService(db=mock_db, storage=mock_storage)
@@ -65,7 +66,7 @@ async def test_download_file():
     assert isinstance(result, StreamingResponse)
 
 
-async def test_delete_file():
+async def test_delete_file() -> None:
     file_db = FileDbModel(
         path_in_storage=f"uploads/{fake.file_name()}",
         filename=fake.file_name(),

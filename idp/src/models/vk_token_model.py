@@ -17,7 +17,6 @@ class VKTokenModel(BaseModel):
     expires_in: int
     user_id: int
     state: str
-    scope: str
 
     session_state: str | None = None
     scope: str

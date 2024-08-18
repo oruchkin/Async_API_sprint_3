@@ -1,11 +1,11 @@
 import logging.config
 from contextlib import asynccontextmanager
 
-from core.settings import ElasticsearchSettings, RedisSettings
-from db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from redis.asyncio import Redis
+from src.core.settings import ElasticsearchSettings, RedisSettings
+from src.db import elastic, redis
 
 logger = logging.getLogger(__name__)
 

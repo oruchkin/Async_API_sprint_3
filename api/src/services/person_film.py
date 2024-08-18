@@ -3,10 +3,10 @@ from functools import lru_cache
 from uuid import UUID
 
 from fastapi import Depends
-from models.film import Film
-from models.person import Person
-from services.film import FilmService, get_film_service
-from services.person import PersonService, get_person_service
+from src.models.film import Film
+from src.models.person import Person
+from src.services.film import FilmService, get_film_service
+from src.services.person import PersonService, get_person_service
 
 
 class PersonFilmService:
@@ -26,7 +26,8 @@ class PersonFilmService:
     async def get_person_with_films(self, person_id: UUID) -> tuple[Person | None, list[Film]]:
         filmsTask = self._film_service.find_by_person(person_id)
         personTask = self._person_service.get_by_id(person_id)
-        return await asyncio.gather(personTask, filmsTask)
+        response: tuple[Person | None, list[Film]] = await asyncio.gather(personTask, filmsTask)
+        return response
 
 
 @lru_cache()

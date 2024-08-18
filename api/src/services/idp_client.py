@@ -39,7 +39,8 @@ class IDPClientService:
 
     async def _send(self, verb: Verb, url: str, json: Any | None = None, data: Any | None = None) -> Any:
         with tracer.start_as_current_span("idp-request") as span:
-            # TODO(agrebennikov): Это неправильно, тут нужен request_id, а не trace_id, вообще непонятно как это должно быть
+            # TODO(agrebennikov): Это неправильно, тут нужен request_id, а не trace_id,
+            # вообще непонятно как это должно быть
             trace_id = span.get_span_context().trace_id
             headers = {"X-Request-Id": format(trace_id, "x")}
 

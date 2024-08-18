@@ -1,11 +1,11 @@
 from http import HTTPStatus
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
+from src.db.base_provider import BaseProvider
 from src.db.db import get_db
 from src.services.file_service import FileService
 from src.services.minio_service import MinioStorage
-
-from file_service.src.db.base_provider import BaseProvider
 
 router = APIRouter()
 

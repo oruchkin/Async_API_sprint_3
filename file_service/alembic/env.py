@@ -2,13 +2,13 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config
 
 # import your models here
 from src.models.file_model import Base
 
 config = context.config
-fileConfig(config.config_file_name)
+fileConfig(config.config_file_name)  # type: ignore
 target_metadata = Base.metadata
 
 

@@ -4,11 +4,11 @@ from functools import lru_cache
 from typing import Literal, get_args
 from uuid import UUID
 
-from db.elastic import get_elastic
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
-from models.film import Film
-from services.base import ServiceABC
+from src.db.elastic import get_elastic
+from src.models.film import Film
+from src.services.base import ServiceABC
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -20,19 +20,22 @@ class FilmService(ServiceABC):
         super().__init__(elastic)
 
     async def search_films(self, query: str, page_number: int = 1, page_size: int = 10) -> list[Film]:
-        """Поиск фильмов по текстовому запросу и фильтрам."""
+        "Поиск фильмов по текстовому запросу и фильтрам."
         search_query = {"bool": {"must": [{"match": {"title": {"query": query, "fuzziness": "AUTO"}}}]}}
         from_index = (page_number - 1) * page_size
         films_data = await self._query_from_elastic("movies", search_query, size=page_size, skip=from_index)
         return [Film(**film) for film in films_data]
 
     async def get_all_films(
-        self, page_number: int, page_size: int, genre: UUID | None = None, sort: dict[str, int] | None = None
+        self,
+        page_number: int,
+        page_size: int,
+        genre: UUID | None = None,
+        sort: dict[str, int] | None = None,
     ) -> list[Film]:
-        """Возвращает все фильмы из базы."""
-
+        "Возвращает все фильмы из базы."
         from_index = (page_number - 1) * page_size
-        query = {"match_all": {}}
+        query: dict = {"match_all": {}}
 
         if genre:
             query = {"nested": {"path": "genres", "query": {"bool": {"must": [{"match": {"genres.id": genre}}]}}}}
@@ -53,6 +56,8 @@ class FilmService(ServiceABC):
         if doc := await self._get_from_elastic("movies", film_id):
             return Film(**doc)
 
+        return None
+
     async def find_by_all_persons(self, person_ids: list[UUID]) -> dict[UUID, list[Film]]:
         subqueries = [FilmService._construct_find_by_all_persons_subquery(person_ids, m) for m in get_args(PERSON_ROLE)]
         data = await self._query_from_elastic("movies", {"bool": {"should": subqueries}})
@@ -70,7 +75,7 @@ class FilmService(ServiceABC):
     @staticmethod
     def _construct_find_by_all_persons_subquery(person_ids: Collection[UUID], property: str) -> dict:
         return {
-            "nested": {"path": property, "query": {"bool": {"should": [{"terms": {f"{property}.id": person_ids}}]}}}
+            "nested": {"path": property, "query": {"bool": {"should": [{"terms": {f"{property}.id": person_ids}}]}}},
         }
 
     @staticmethod

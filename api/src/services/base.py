@@ -16,13 +16,14 @@ class ServiceABC(ABC):
 
     async def _get_from_elastic(self, index: INDICES, id: UUID) -> dict | None:
         try:
-            data = await self.elastic.get(index=index, id=id)
-            return cast(dict, data)["_source"]
+            data = await self.elastic.get(index=index, id=str(id))
+            source: dict = cast(dict, data)["_source"]
+            return source
         except NotFoundError:
             return None
 
     async def _get_all_from_elastic(self, index: INDICES, ids: list[UUID]) -> list[dict]:
-        data = await self.elastic.mget({"ids": ids}, index=index)
+        data = await self.elastic.mget({"ids": [str(id) for id in ids]}, index=str(index))  # type: ignore
         return [doc["_source"] for doc in cast(dict, data)["docs"]]
 
     async def _query_from_elastic(

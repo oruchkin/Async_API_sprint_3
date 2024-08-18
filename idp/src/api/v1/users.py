@@ -47,7 +47,8 @@ async def user_token(
     description="Flag indicating if token is valid",
 )
 async def user_introspect_token(
-    oidc: OIDCClient = Depends(get_oidc_service), bearer: HTTPAuthorizationCredentials = Depends(bearer_security)
+    oidc: OIDCClient = Depends(get_oidc_service),
+    bearer: HTTPAuthorizationCredentials = Depends(bearer_security),
 ) -> schemas.TokenIntrospection:
     is_valid = await oidc.introspect(bearer.credentials)
     return schemas.TokenIntrospection(valid=is_valid)
@@ -59,7 +60,9 @@ async def user_introspect_token(
     description="Doesn't return anything",
 )
 async def user_logout(
-    token: schemas.RefreshToken, oidc: OIDCClient = Depends(get_oidc_service), _=Depends(AuthorizationProvider())
+    token: schemas.RefreshToken,
+    oidc: OIDCClient = Depends(get_oidc_service),
+    _=Depends(AuthorizationProvider()),
 ) -> None:
     await oidc.logout(token.refresh_token)
 
@@ -70,7 +73,8 @@ async def user_logout(
     description="Doesn't return anything",
 )
 async def user_logout_me_all(
-    keycloak: KeycloackClient = Depends(get_keycloak_service), user: TokenData = Depends(AuthorizationProvider())
+    keycloak: KeycloackClient = Depends(get_keycloak_service),
+    user: TokenData = Depends(AuthorizationProvider()),
 ) -> None:
     await keycloak.user_logout_all(user.user_id)
 
@@ -137,8 +141,8 @@ async def create_user(
     keycloak: KeycloackClient = Depends(get_keycloak_service),
 ) -> schemas.User:
     await keycloak.create_user(username, email, password)
-    createdUser = await keycloak.get_user_with_email(email)
-    return schemas.User.model_validate(createdUser)
+    created_user = await keycloak.get_user_with_email(email)
+    return schemas.User.model_validate(created_user)
 
 
 @router.get(

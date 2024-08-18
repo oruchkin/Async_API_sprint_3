@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from models.uitls import BaseOrjsonModel
+from src.models.uitls import BaseOrjsonModel
 
 
 class Genre(BaseOrjsonModel):

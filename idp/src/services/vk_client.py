@@ -3,13 +3,13 @@ import hashlib
 import json
 import urllib.parse
 from functools import lru_cache
+from http import HTTPStatus
 from secrets import randbelow, token_urlsafe
 from typing import Any, Callable, Literal
 
 import aiohttp
 import models
 import services.errors as errors
-from http import HTTPStatus
 from core.settings import VKSettings
 from db.redis import get_redis
 from fastapi import Depends
@@ -73,10 +73,10 @@ class VKClient:
         verifier_length = randbelow(CODE_LENGTH[1] - CODE_LENGTH[0]) + CODE_LENGTH[0]
         code_verifier = token_urlsafe(verifier_length)
 
-        code_challenge = hashlib.sha256(code_verifier.encode("utf-8")).digest()
-        code_challenge = base64.urlsafe_b64encode(code_challenge).decode("utf-8")
+        code_challenge_hash = hashlib.sha256(code_verifier.encode("utf-8")).digest()
+        code_challenge = base64.urlsafe_b64encode(code_challenge_hash).decode("utf-8")
         code_challenge = code_challenge.replace("=", "")
-        return code_verifier, code_challenge
+        return code_verifier, str(code_challenge)
 
     @staticmethod
     def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
@@ -102,7 +102,7 @@ class VKClient:
         raw = await response.text()
         if response.ok:
             # some api calls return empty response
-            return json.loads(raw) if raw else {}
+            return dict(json.loads(raw)) if raw else {}
 
         data = json.loads(raw)
         error = self._get_error_message(data)
@@ -119,10 +119,10 @@ class VKClient:
 
     def _get_error_message(self, data: dict) -> str:
         if "errorMessage" in data:
-            return data["errorMessage"]
+            return str(data["errorMessage"])
 
         if "error" in data:
-            return data["error"]
+            return str(data["error"])
 
         return "Failed"
 

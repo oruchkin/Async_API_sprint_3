@@ -2,9 +2,6 @@ import uvicorn
 from fastapi import FastAPI
 from src.api.file_endpoints import router as file_router
 
-# app = FastAPI()
-
-
 app = FastAPI(
     title="File storage API",
     description="Provides files storage functionality",

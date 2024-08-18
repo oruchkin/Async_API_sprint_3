@@ -17,5 +17,5 @@ class ThrottlingService:
         pipeline.incr(key, 1)
         pipeline.expire(key, 59)
         result = await pipeline.execute()
-        request_number = result[0]
+        request_number = int(result[0])
         return request_number < REQUEST_LIMIT_PER_MINUTE

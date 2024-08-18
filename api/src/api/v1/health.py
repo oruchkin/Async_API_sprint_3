@@ -1,11 +1,11 @@
 import logging
 
-from api.v1.schemas.health_status import HealthStatus
-from db.elastic import get_elastic
-from db.redis import get_redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import APIRouter, Depends
 from redis.asyncio import Redis
+from src.api.v1.schemas.health_status import HealthStatus
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
 
 router = APIRouter()
 

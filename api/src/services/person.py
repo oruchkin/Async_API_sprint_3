@@ -1,11 +1,11 @@
 from functools import lru_cache
 from uuid import UUID
 
-from db.elastic import get_elastic
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
-from models.person import Person
-from services.base import ServiceABC
+from src.db.elastic import get_elastic
+from src.models.person import Person
+from src.services.base import ServiceABC
 
 
 class PersonService(ServiceABC):
@@ -15,6 +15,8 @@ class PersonService(ServiceABC):
     async def get_by_id(self, person_id: UUID) -> Person | None:
         if doc := await self._get_from_elastic("persons", person_id):
             return Person(**doc)
+
+        return None
 
     async def search(self, search: str, page_number: int = 1, page_size: int = 50) -> list[Person]:
         query = {"bool": {"must": [{"match": {"full_name": search}}]}}

@@ -1,7 +1,8 @@
-from db.base_provider import BaseProvider
-from models.file_model import FileDbModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from src.models.file_model import FileDbModel
+
+from .base_provider import BaseProvider
 
 
 class PgProvider(BaseProvider):
