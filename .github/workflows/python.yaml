@@ -38,10 +38,12 @@ jobs:
     
     - name: Test with pytest
       run: |
-        tests=($(find . -name "tests" -type d))
+        # we need tests with __init__.py in it
+        tests=($(find . -name "__init__.py" -type f | grep -oP '^.*/tests/__init__\.py'))
         for i in "${tests[@]}"
         do
-          if [[ $i =~ *(functional|cache)* ]]; then continue; fi
+          if [[ $i =~ *(cache|functional)* ]]; then continue; fi
+          echo "Running tests in $i"
           pytest $i --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
         done
 
