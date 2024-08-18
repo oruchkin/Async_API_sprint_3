@@ -5,11 +5,11 @@ from alembic import context
 from sqlalchemy import engine_from_config
 
 # import your models here
-from sqlalchemy.orm import DeclarativeBase
+from src.models.file_model import Base
 
 config = context.config
 fileConfig(config.config_file_name)  # type: ignore
-target_metadata = DeclarativeBase.metadata
+target_metadata = Base.metadata
 
 
 def run_migrations_offline():
