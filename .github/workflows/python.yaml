@@ -49,6 +49,6 @@ jobs:
         do
           if [[ $i == docs* ]]; then continue; fi
           echo "$i"
-          mypy $i/*/*.py
+          mypy $i/*/*.py --explicit-package-bases $i
         # find . -name "*.py" -type f -exec mypy '{}' ';'
         done
