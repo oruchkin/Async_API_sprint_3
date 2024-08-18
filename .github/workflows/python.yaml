@@ -39,7 +39,7 @@ jobs:
     - name: Test with pytest
       run: |
         # we need tests with __init__.py in it
-        tests=($(find . -name "__init__.py" -type f | grep -oP '^.*/tests/__init__\.py'))
+        tests=($(find . -name "__init__.py" -type f | grep -oP '^.*/tests/__init__\.py'  | sed 's/__init__.py//'))
         for i in "${tests[@]}"
         do
           if [[ $i =~ *(cache|functional)* ]]; then continue; fi
