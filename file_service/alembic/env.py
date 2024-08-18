@@ -27,7 +27,7 @@ def run_migrations_online():
     pg_password = os.environ["POSTGRES_PASSWORD"]
     pg_host = os.environ["POSTGRES_HOST"]
     pg_port = os.environ["POSTGRES_PORT"]
-    pg_db = os.environ["FASTAPI_POSTGRES_DB"]
+    pg_db = os.environ["FILEAPI_POSTGRES_DB"]
     db_config = {
         "sqlalchemy.url": f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
         "sqlalchemy.echo": "True",
