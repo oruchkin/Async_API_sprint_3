@@ -1,8 +1,9 @@
 import json
-from typing import Any, Dict
+from typing import Any, cast
 
 from redis import Redis
-from state.state_storage import BaseStorage
+
+from .state_storage import BaseStorage
 
 REDIS_STORAGE_KEY = "data"
 
@@ -15,6 +16,6 @@ class RedisStorage(BaseStorage):
         value = json.dumps(state)
         self.redis_adapter.set(REDIS_STORAGE_KEY, value)
 
-    def retrieve_state(self) -> Dict[str, Any]:
+    def retrieve_state(self) -> dict[str, Any]:
         value = self.redis_adapter.get(REDIS_STORAGE_KEY)
-        return json.loads(str(value)) if value else {}
+        return cast(dict[str, Any], json.loads(str(value))) if value else {}

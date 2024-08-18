@@ -1,8 +1,8 @@
 import json
 import os
-from typing import Any
+from typing import Any, cast
 
-from state.state_storage import BaseStorage
+from .state_storage import BaseStorage
 
 
 class JsonFileStorage(BaseStorage):
@@ -14,7 +14,8 @@ class JsonFileStorage(BaseStorage):
             json.dump(state, file)
 
     def retrieve_state(self) -> dict[str, Any]:
-        if not os.path.exists(self.file_path):
-            return {}
-        with open(self.file_path, "r") as file:
-            return json.load(file)
+        if os.path.exists(self.file_path):
+            with open(self.file_path, "r") as file:
+                return cast(dict[str, Any], json.load(file))
+
+        return {}

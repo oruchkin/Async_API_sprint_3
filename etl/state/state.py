@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-from state.state_storage import BaseStorage
+from .state_storage import BaseStorage
 
 
 class State:
