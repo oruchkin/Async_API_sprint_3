@@ -72,6 +72,8 @@ class Filmwork(TimeStampedMixin, UUIDMixin):
     genres = models.ManyToManyField(Genre, through="GenreFilmwork")
     file = models.FileField(_("file"), storage=CustomStorage(), null=True)
     certificate = models.CharField(_("certificate"), max_length=512, blank=True)
+    likes = models.SmallIntegerField(_("likes"), default=0, validators=[MinValueValidator(0)])
+    dislikes = models.SmallIntegerField(_("dislikes"), default=0, validators=[MinValueValidator(0)])
 
     class Meta:
         db_table = 'content"."film_work'
