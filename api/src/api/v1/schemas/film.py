@@ -9,3 +9,6 @@ class Film(BaseModel):
     id: UUID
     title: str
     imdb_rating: float
+    user_rating: float = 0
+    user_count: int = 0
+    my_rating: int | None = None

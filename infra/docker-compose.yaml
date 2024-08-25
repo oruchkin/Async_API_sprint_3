@@ -19,6 +19,14 @@ services:
     profiles: ["admin-dev", "etl-dev", "api-dev", "idp-dev", "init"]
 
 
+  mongodb:
+    image: mongo
+    ports: [27017:27017]
+    restart: unless-stopped 
+    volumes:
+      - mongodb_storage:/data/db
+    profiles: [api, api-dev]
+
   admin:
     build:
       context: ./../admin
@@ -112,7 +120,7 @@ services:
     build:
       context: ./../api
     expose: [8000]
-    depends_on: [elasticsearch, redis]
+    depends_on: [elasticsearch, redis, mongodb]
     env_file: [.env]
     profiles: ["all", "api"]
 
@@ -255,6 +263,9 @@ volumes:
     external: true
   minio_storage:
     name: admin-panel-s3
+    external: true
+  mongodb_storage:
+    name: admin-panel-mongo
     external: true
 
 

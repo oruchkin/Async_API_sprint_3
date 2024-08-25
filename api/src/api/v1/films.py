@@ -11,6 +11,7 @@ from src.core.settings import DjangoSettings, FileapiSettings
 from src.db.redis import get_cache
 from src.services.cache.storage import ICache
 from src.services.film import FilmService, get_film_service
+from src.services.user_pref import UserPrefService, get_user_pref_service
 
 router = APIRouter()
 
@@ -29,7 +30,9 @@ async def list_films(
     pagination: PaginatedParams = Depends(),
     sort: SORT_OPTION = Query("imdb_rating", description="Sorting options"),
     genre: UUID | None = Query(None, description="Films by genre"),
+    user_id: UUID | None = Query(None, description="User id from the access token"),
     film_service: FilmService = Depends(get_film_service),
+    user_pref: UserPrefService = Depends(get_user_pref_service),
     cache: ICache = Depends(get_cache),
 ) -> list[Film]:
     key = f"films:{pagination.page_number}:{pagination.page_size}:{genre}:{sort}"
@@ -48,6 +51,8 @@ async def list_films(
                 sort_object[item] = 1
     films = await film_service.get_all_films(pagination.page_number, pagination.page_size, genre, sort_object)
     mapped = [Film.model_validate(film) for film in films]
+    await _populate_rating(mapped, user_pref, user_id)
+
     cached = adapter.dump_json(mapped)
     await cache.set(key, cached, 60 * 5)
     response.headers["Cache-Control"] = f"max-age={60 * 5}"
@@ -63,8 +68,10 @@ async def list_films(
 async def search_films(
     response: Response,
     query: str = Query(min_length=3, description="Search query string"),
+    user_id: UUID | None = Query(None, description="User id from the access token"),
     pagination: PaginatedParams = Depends(),
     film_service: FilmService = Depends(get_film_service),
+    user_pref: UserPrefService = Depends(get_user_pref_service),
     cache: ICache = Depends(get_cache),
 ) -> list[Film]:
     key = f"films:{query}:{pagination.page_number}:{pagination.page_size}"
@@ -74,6 +81,8 @@ async def search_films(
 
     films = await film_service.search_films(query, pagination.page_number, pagination.page_size)
     mapped = [Film.model_validate(film) for film in films]
+    await _populate_rating(mapped, user_pref, user_id)
+
     cached = adapter.dump_json(mapped)
     await cache.set(key, cached, 60 * 5)
     response.headers["Cache-Control"] = f"max-age={60 * 5}"
@@ -86,9 +95,15 @@ async def search_films(
     summary="Данные по конкретному фильму",
     description="Возвращает подробную информацию о фильме.",
 )
-async def film_details(film_id: UUID, film_service: FilmService = Depends(get_film_service)) -> FilmDetailed:
+async def film_details(
+    film_id: UUID,
+    user_id: UUID | None = Query(None, description="User id from the access token"),
+    film_service: FilmService = Depends(get_film_service),
+    user_pref: UserPrefService = Depends(get_user_pref_service),
+) -> FilmDetailed:
     if film := await film_service.get_by_id(film_id):
         model = FilmDetailed.model_validate(film)
+        await _populate_rating([model], user_pref, user_id)
 
         if model.file:
             fileapi = FileapiSettings()
@@ -99,3 +114,16 @@ async def film_details(film_id: UUID, film_service: FilmService = Depends(get_fi
         return model
 
     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="film not found")
+
+
+async def _populate_rating(films: list[Film], user_pref: UserPrefService, user_id: UUID | None) -> None:
+    ids = [f.id for f in films]
+    ratings = await user_pref.count_films_rating(ids)
+    user_ratings = await user_pref.list_user_ratings(user_id, ids) if user_id else {}
+    ratings_map = {r.id: r for r in ratings}
+    for film in films:
+        if film_rating := ratings_map.get(film.id):
+            film.user_rating = film_rating.rating
+            film.user_count = film_rating.count
+        if (ur := user_ratings.get(film.id)) is not None:
+            film.my_rating = ur

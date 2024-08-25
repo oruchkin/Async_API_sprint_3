@@ -34,6 +34,9 @@ class FilmService(ServiceABC):
         sort: dict[str, int] | None = None,
     ) -> list[Film]:
         "Возвращает все фильмы из базы."
+        if page_number < 1:
+            raise ValueError("page_number must 1 or more")
+
         from_index = (page_number - 1) * page_size
         query: dict = {"match_all": {}}
 

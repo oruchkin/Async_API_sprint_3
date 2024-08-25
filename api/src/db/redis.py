@@ -19,7 +19,7 @@ def get_cache() -> ICache:
     # but as we don't have any other implementations
     # of the cache provider let's keep it here.
     global redis
-    if redis is None:
+    if True or redis is None:
         return NoneCache()
 
     return RedisCache(redis)
