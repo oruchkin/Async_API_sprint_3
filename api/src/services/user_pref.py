@@ -11,6 +11,7 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from pymongo import InsertOne
 from src.db.mogno import get_mongo
+from src.models.film_bookmark import FilmBookmark
 from src.models.film_review import FilmReview
 from src.models.film_user_rating import FilmUserRating
 
@@ -103,7 +104,13 @@ class UserPrefService:
         }
         await collection.insert_one(doc)
         return FilmReview(
-            id=str(doc["_id"]), user_id=user_id, review=review, created_at=doc["created_at"], likes=0, dislikes=0
+            id=str(doc["_id"]),
+            user_id=user_id,
+            review=review,
+            movie_id=film_id,
+            created_at=doc["created_at"],
+            likes=0,
+            dislikes=0,
         )
 
     async def list_movie_revies(self, movie_id: UUID) -> list[FilmReview]:
@@ -175,6 +182,32 @@ class UserPrefService:
                 doc = {"_id": ObjectId(), "user_id": str(user_id), "review_id": review_id, "like": like}
                 await collection.insert_one(doc)
 
+    async def add_movie_bookmark(self, user_id: UUID, movie_id: UUID) -> str:
+        collection = await self._get_user_bookmarks_collection()
+        doc = {
+            "_id": ObjectId(),
+            "user_id": str(user_id),
+            "movie_id": str(movie_id),
+            "created_at": datetime.now(UTC),
+        }
+        await collection.insert_one(doc)
+        return str(doc["_id"])
+
+    async def delete_movie_bookmark(self, bookmark_id: ObjectId, user_id: UUID) -> None:
+        collection = await self._get_user_bookmarks_collection()
+        # user_id filter is required to be sure that user removes own bookmarks
+        await collection.delete_one({"_id": bookmark_id, "user_id": user_id})
+
+    async def list_user_bookmarks(self, user_id: UUID, movie_ids: list[UUID] | None = None) -> list[FilmBookmark]:
+        collection = await self._get_user_bookmarks_collection()
+        filter = (
+            {"user_id": str(user_id), "movie_id": {"$in": [str(id) for id in movie_ids]}}
+            if movie_ids
+            else {"user_id": str(user_id)}
+        )
+        results = await collection.find(filter).to_list(length=None)
+        return [FilmBookmark.model_validate({**e, **{"id": str(e["_id"])}}) for e in results]
+
     async def _get_movie_ratings_collection(self) -> AsyncIOMotorCollection:
         db = self._mongo.get_database("user_pref_db")
         collection = db.get_collection("movie_likes")
@@ -194,6 +227,13 @@ class UserPrefService:
         collection = db.get_collection("movie_review_reactions")
         await collection.create_index({"user_id": 1})
         await collection.create_index({"review_id": 1})
+        return collection
+
+    async def _get_user_bookmarks_collection(self) -> AsyncIOMotorCollection:
+        db = self._mongo.get_database("user_pref_db")
+        collection = db.get_collection("user_movie_bookmarks")
+        await collection.create_index({"user_id": 1})
+        await collection.create_index({"movie_id": 1})
         return collection
 
 

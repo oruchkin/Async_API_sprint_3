@@ -120,10 +120,13 @@ async def _populate_rating(films: list[Film], user_pref: UserPrefService, user_i
     ids = [f.id for f in films]
     ratings = await user_pref.count_films_rating(ids)
     user_ratings = await user_pref.list_user_ratings(user_id, ids) if user_id else {}
+    bookmarked = await user_pref.list_user_bookmarks(user_id, ids) if user_id else []
     ratings_map = {r.id: r for r in ratings}
+    bookmarked_set = {bm.movie_id for bm in bookmarked}
     for film in films:
         if film_rating := ratings_map.get(film.id):
             film.user_rating = film_rating.rating
             film.user_count = film_rating.count
         if (ur := user_ratings.get(film.id)) is not None:
             film.my_rating = ur
+        film.is_bookmarked = film.id in bookmarked_set
