@@ -7,7 +7,7 @@ from fastapi import APIRouter, Body, Depends
 from pydantic import AfterValidator
 from src.services.user_pref import UserPrefService, get_user_pref_service
 
-from api.v1.schemas.film_review_request import FilmReviewRequest
+from src.api.v1.schemas.film_review_request import FilmReviewRequest
 
 router = APIRouter()
 
@@ -51,7 +51,9 @@ async def list_reviews(
 async def set_like(
     user_id: UUID,
     review_id: Annotated[str, AfterValidator(check_object_id)],
-    like: Annotated[bool | None, Body(description="User reaction, if None value will be removed")] = None,
+    like: Annotated[
+        bool | None, Body(description="User reaction, if None value will be removed")
+    ] = None,
     userpref: UserPrefService = Depends(get_user_pref_service),
 ):
     await userpref.rate_movie_review(user_id, ObjectId(review_id), like)
