@@ -26,7 +26,7 @@ async def populate_like(
         all_films += [f.id for f in found]
         page += 1
 
-    await userpref.populate_likes(all_films)
+    await userpref.populate_ratings(all_films)
 
 
 @router.get("/me")

@@ -1,6 +1,7 @@
 import logging
 import random
 import time
+from datetime import UTC, datetime
 from functools import lru_cache
 from typing import Any
 from uuid import UUID, uuid4
@@ -10,6 +11,7 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from pymongo import InsertOne
 from src.db.mogno import get_mongo
+from src.models.film_review import FilmReview
 from src.models.film_user_rating import FilmUserRating
 
 
@@ -18,7 +20,7 @@ class UserPrefService:
         self._mongo = mongo
         self._logger = logging.getLogger(__name__)
 
-    async def populate_likes(self, films: list[UUID]) -> None:
+    async def populate_ratings(self, films: list[UUID]) -> None:
         """
         For dev purpose only.
         Populate database if movies reactions.
@@ -36,7 +38,7 @@ class UserPrefService:
             ]
 
             if len(batch) >= 10_000:
-                collection = await self._get_movie_likes_collection()
+                collection = await self._get_movie_ratings_collection()
                 await collection.bulk_write(requests=batch, ordered=False)
                 self._logger.info("Populated 10K in %.2f sec", time.perf_counter() - start_batch)
                 batch = []
@@ -48,13 +50,16 @@ class UserPrefService:
         """
         Compute average users' films rating and number of votes.
         """
+        start = time.perf_counter()
         pipeline: list[dict[str, Any]] = [
             {"$match": {"movie_id": {"$in": [str(id) for id in film_ids]}}},
             {"$group": {"_id": "$movie_id", "count": {"$count": {}}, "rating": {"$avg": "$value"}}},
             {"$project": {"id": "$_id", "count": 1, "rating": 1}},
         ]
-        collection = await self._get_movie_likes_collection()
+        collection = await self._get_movie_ratings_collection()
         values = await collection.aggregate(pipeline).to_list(length=len(film_ids) * 2)
+        elapsed = time.perf_counter() - start
+        self._logger.info("Films rating counted in %.2f sec", elapsed)
         return [FilmUserRating.model_validate(v) for v in values]
 
     async def list_user_ratings(self, user_id: UUID, films: list[UUID] | None = None) -> dict[UUID, int]:
@@ -66,12 +71,12 @@ class UserPrefService:
             if films is None
             else {"user_id": str(user_id), "movie_id": {"$in": [str(id) for id in films]}}
         )
-        collection = await self._get_movie_likes_collection()
+        collection = await self._get_movie_ratings_collection()
         found = await collection.find(find).to_list(length=None)
         return {UUID(e["movie_id"]): e["value"] for e in found}
 
     async def upsert_movie_rating(self, user_id: UUID, film_id: UUID, rating: int | None) -> int | None:
-        collection = await self._get_movie_likes_collection()
+        collection = await self._get_movie_ratings_collection()
         row_filter = {"user_id": str(user_id), "movie_id": str(film_id)}
         if rating is None:
             await collection.delete_one(row_filter)
@@ -84,11 +89,111 @@ class UserPrefService:
 
         return rating
 
-    async def _get_movie_likes_collection(self) -> AsyncIOMotorCollection:
+    async def create_movie_review(self, user_id: UUID, film_id: UUID, review: str) -> FilmReview:
+        collection = await self._get_movie_reviews_collection()
+        if await collection.find_one({"user_id": str(user_id), "movie_id": str(film_id)}):
+            raise RuntimeError("Что написано пером, того не вырубишь топором")
+
+        doc = {
+            "_id": ObjectId(),
+            "user_id": str(user_id),
+            "movie_id": str(film_id),
+            "review": review,
+            "created_at": datetime.now(UTC),
+        }
+        await collection.insert_one(doc)
+        return FilmReview(
+            id=str(doc["_id"]), user_id=user_id, review=review, created_at=doc["created_at"], likes=0, dislikes=0
+        )
+
+    async def list_movie_revies(self, movie_id: UUID) -> list[FilmReview]:
+        filter = {"movie_id": str(movie_id)}
+        return await self._list_rated_reviews(filter)
+
+    async def list_user_reviews(self, user_id: UUID) -> list[FilmReview]:
+        filter = {"user_id": str(user_id)}
+        return await self._list_rated_reviews(filter)
+
+    async def _list_rated_reviews(self, filter: dict[str, Any]) -> list[FilmReview]:
+        collection = await self._get_movie_reviews_collection()
+        pipeline_subdocument = [
+            {"$group": {"_id": "$like", "count": {"$count": {}}}},
+            {
+                "$project": {
+                    "_id": 0,
+                    "v": "$count",
+                    "k": {"$cond": {"if": "$_id", "then": "likes", "else": "dislikes"}},
+                }
+            },
+        ]
+        pipeline: list[dict[str, Any]] = [
+            {"$match": filter},
+            {
+                "$lookup": {
+                    "from": "movie_review_reactions",
+                    "localField": "_id",
+                    "foreignField": "review_id",
+                    "as": "reactions",
+                    "pipeline": pipeline_subdocument,
+                }
+            },
+            {
+                "$project": {
+                    "user_id": 1,
+                    "movie_id": 1,
+                    "review": 1,
+                    "created_at": 1,
+                    "reactions": {"$arrayToObject": "$reactions"},
+                }
+            },
+            {
+                "$project": {
+                    "id": {"$toString": "$_id"},
+                    "user_id": 1,
+                    "movie_id": 1,
+                    "review": 1,
+                    "created_at": 1,
+                    "likes": {"$ifNull": ["$reactions.likes", 0]},
+                    "dislikes": {"$ifNull": ["$reactions.dislikes", 0]},
+                }
+            },
+            {"$sort": {"likes": -1, "dislikes": 1}},
+        ]
+        result = await collection.aggregate(pipeline).to_list(length=None)
+        return [FilmReview.model_validate(r) for r in result]
+
+    async def rate_movie_review(self, user_id: UUID, review_id: ObjectId, like: bool | None) -> None:
+        collection = await self._get_movie_review_reactions_collection()
+        review_filter = {"user_id": str(user_id), "review_id": review_id}
+        if like is None:
+            await collection.delete_one(review_filter)
+
+        else:
+            if existing := await collection.find_one(review_filter):
+                await collection.update_one({"_id": existing["_id"]}, {"$set": {"like": like}})
+            else:
+                doc = {"_id": ObjectId(), "user_id": str(user_id), "review_id": review_id, "like": like}
+                await collection.insert_one(doc)
+
+    async def _get_movie_ratings_collection(self) -> AsyncIOMotorCollection:
         db = self._mongo.get_database("user_pref_db")
         collection = db.get_collection("movie_likes")
         await collection.create_index({"user_id": 1})
         await collection.create_index({"movie_id": 1})
+        return collection
+
+    async def _get_movie_reviews_collection(self) -> AsyncIOMotorCollection:
+        db = self._mongo.get_database("user_pref_db")
+        collection = db.get_collection("movie_reviews")
+        await collection.create_index({"user_id": 1})
+        await collection.create_index({"movie_id": 1})
+        return collection
+
+    async def _get_movie_review_reactions_collection(self) -> AsyncIOMotorCollection:
+        db = self._mongo.get_database("user_pref_db")
+        collection = db.get_collection("movie_review_reactions")
+        await collection.create_index({"user_id": 1})
+        await collection.create_index({"review_id": 1})
         return collection
 
 

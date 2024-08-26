@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
-from src.api.v1 import films, films_rating, genres, health, persons
+from src.api.v1 import films, films_rating, films_reviews, genres, health, persons
 from src.core.lifecycle import lifespan
 from src.core.logger import LOGGING
 from src.core.tracer import configure_tracer
@@ -83,6 +83,7 @@ async def ensure_request_id_header(request: Request, call_next):
 
 app.include_router(films.router, prefix="/api/v1/films", tags=["films"])
 app.include_router(films_rating.router, prefix="/api/v1/films/rating", tags=["films"])
+app.include_router(films_reviews.router, prefix="/api/v1/films/reviews", tags=["films"])
 app.include_router(genres.router, prefix="/api/v1/genres", tags=["genres"])
 app.include_router(persons.router, prefix="/api/v1/persons", tags=["persons"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
