@@ -56,8 +56,8 @@ services:
       - ./../idp/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api
-    ports: [43212:80]
-    profiles: [idp]
+    ports: [45324:80]
+    profiles: [idp, api]
 
   elasticsearch-base: &elasticsearch-base
     image: elasticsearch:8.6.2
@@ -212,18 +212,17 @@ services:
     build:
         context: ./../idp
     expose: [8000]
-    ports: [29543:8000]
     profiles: [never]
 
   idp:
     <<: *idp-base
-    ports: [8000:8000]
     depends_on: [postgres]
     env_file: [.env]
     profiles: [all, api, idp]
 
   idp-dev:
     <<: *idp-base
+    ports: [29543:8000]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [admin-dev, api-dev]

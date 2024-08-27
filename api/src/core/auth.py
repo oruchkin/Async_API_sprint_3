@@ -3,11 +3,11 @@ import uuid
 from http import HTTPStatus
 from typing import Optional
 
-from core.verification import verify_token
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from services.oidc_client import OIDCClient, get_oidc_service
+from src.core.verification import verify_token
+from src.services.oidc_client import OIDCClient, get_oidc_service
 from src.services.idp_client import IDPClientService, get_idp_client_service
 from starlette.authentication import AuthCredentials, AuthenticationBackend, SimpleUser
 
