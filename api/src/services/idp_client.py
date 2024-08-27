@@ -3,7 +3,7 @@ from functools import lru_cache
 from typing import Any, Callable, Literal
 
 import aiohttp
-from core.settings import IDPSettings
+from src.core.settings import IDPSettings
 from opentelemetry import trace
 
 Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
@@ -25,7 +25,9 @@ class IDPClientService:
 
     async def introspect(self, token: str) -> bool:
         url = f"{self._settings.url}/api/v1/users/introspect"
-        response = await self._send("POST", url, headers={"Authorization": f"Bearer {token}"})
+        response = await self._send(
+            "POST", url, headers={"Authorization": f"Bearer {token}"}
+        )
         return bool(response.get("valid", False))
 
     @staticmethod
@@ -43,7 +45,12 @@ class IDPClientService:
                 return session.patch
 
     async def _send(
-        self, verb: Verb, url: str, json: Any | None = None, data: Any | None = None, headers: dict | None = None
+        self,
+        verb: Verb,
+        url: str,
+        json: Any | None = None,
+        data: Any | None = None,
+        headers: dict | None = None,
     ) -> Any:
         with tracer.start_as_current_span("idp-request") as span:
             # TODO(agrebennikov): Это неправильно, тут нужен request_id, а не trace_id,
@@ -52,7 +59,9 @@ class IDPClientService:
             request_id_header = {"X-Request-Id": format(trace_id, "x")}
             headers = {**headers, **request_id_header} if headers else request_id_header
 
-            async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
+            async with aiohttp.ClientSession(
+                timeout=self._timeout, headers=headers
+            ) as session:
                 func = IDPClientService._get_func_by_verb(verb, session)
                 async with func(url, json=json, data=data) as response:
                     return await self._handle_failed_response(response)
