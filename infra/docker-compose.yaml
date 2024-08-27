@@ -234,7 +234,7 @@ services:
     ports: [32547:8080]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
-    profiles: [admin-dev, idp-dev]
+    profiles: [admin-dev, idp-dev, api-dev]
   
   keycloak:
     build:

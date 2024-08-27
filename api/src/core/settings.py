@@ -30,4 +30,10 @@ class JaegerSettings(BaseSettings):
 
 class IDPSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="IDP_")
-    url: str
+    url: str = ""
+
+
+class KeycloakSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="IDP_KEYCLOAK_")
+    url: str = ""
+    client: str = ""

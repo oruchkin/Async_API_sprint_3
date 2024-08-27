@@ -7,6 +7,7 @@ from pydantic import TypeAdapter
 from src.api.v1.schemas.film import Film
 from src.api.v1.schemas.film_detailed import FilmDetailed
 from src.api.v1.schemas.pagination import PaginatedParams
+from src.core.auth import TokenData, get_current_user
 from src.core.settings import DjangoSettings, FileapiSettings
 from src.db.redis import get_cache
 from src.services.cache.storage import ICache
@@ -30,11 +31,13 @@ async def list_films(
     pagination: PaginatedParams = Depends(),
     sort: SORT_OPTION = Query("imdb_rating", description="Sorting options"),
     genre: UUID | None = Query(None, description="Films by genre"),
+    user: TokenData | None = Depends(get_current_user),
     user_id: UUID | None = Query(None, description="User id from the access token"),
     film_service: FilmService = Depends(get_film_service),
     user_pref: UserPrefService = Depends(get_user_pref_service),
     cache: ICache = Depends(get_cache),
 ) -> list[Film]:
+    user_id = user.user_id if user else user_id
     key = f"films:{pagination.page_number}:{pagination.page_size}:{genre}:{sort}"
     adapter = TypeAdapter(list[Film])
     if cached := await cache.get(key):

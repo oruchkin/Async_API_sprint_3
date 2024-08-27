@@ -23,6 +23,11 @@ class IDPClientService:
 
         print(smth)
 
+    async def introspect(self, token: str) -> bool:
+        url = f"{self._settings.url}/api/v1/users/introspect"
+        response = await self._send("POST", url, headers={"Authorization": f"Bearer {token}"})
+        return bool(response.get("valid", False))
+
     @staticmethod
     def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
         match verb:
@@ -37,12 +42,15 @@ class IDPClientService:
             case "PATCH":
                 return session.patch
 
-    async def _send(self, verb: Verb, url: str, json: Any | None = None, data: Any | None = None) -> Any:
+    async def _send(
+        self, verb: Verb, url: str, json: Any | None = None, data: Any | None = None, headers: dict | None = None
+    ) -> Any:
         with tracer.start_as_current_span("idp-request") as span:
             # TODO(agrebennikov): Это неправильно, тут нужен request_id, а не trace_id,
             # вообще непонятно как это должно быть
             trace_id = span.get_span_context().trace_id
-            headers = {"X-Request-Id": format(trace_id, "x")}
+            request_id_header = {"X-Request-Id": format(trace_id, "x")}
+            headers = {**headers, **request_id_header} if headers else request_id_header
 
             async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
                 func = IDPClientService._get_func_by_verb(verb, session)
@@ -53,7 +61,7 @@ class IDPClientService:
         raw = await response.text()
         if response.ok:
             # some api calls return empty response
-            return json.loads(raw) if raw else {}
+            return dict(json.loads(raw)) if raw else {}
 
         raise ValueError(raw)
 
