@@ -21,6 +21,28 @@
 отображается пользовательский рейтинг, количество голосов и добвлен ли этот фильм в закладки
 для текущего пользователя (если он авторизован).
 
+### Подключили ELK stack к UGC:
+
+запустить сервисы `UGC` + `ELK` стэк можно этой командой из папки [UGC](https://github.com/oruchkin/Async_API_sprint_3/tree/main/ugc#readme):
+```
+docker-compose --profile ugc --profile elk up --build -d
+```
+
+в файле `api/src/api/ugc_logs.json` уже есть шаблонные логи которые заполнятся автоматически
+
+Чтобы завести паттерн, нужно загнать данные в logastash:
+1) запустить все сервисы и отправить сюда `http://127.0.0.1:5000/event`
+```json
+{
+    "type": "movie_progress",
+    "user_id": "4518e644-1ff3-4003-a14e-99dfe3fdd7ab",
+    "movie_id": "e9897504-9b73-40bb-a22e-815daf7a190d",
+    "progress": 1232
+}
+```
+перейдите в Management → Stack Management → Index Patterns и нажмите Create index patter имя `app-2024.08`.
+
+
 
 ## Проектная работа 9 спринта
 Мы cделали User Generated Content Service
