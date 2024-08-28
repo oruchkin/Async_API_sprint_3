@@ -1,3 +1,25 @@
+## Проектная работа 10 спринта
+
+запустить сервисы `UGC` + `ELK` стэк можно этой командой:
+```
+docker-compose --profile ugc --profile elk up --build -d
+```
+
+Чтобы завести паттерн, нужно загнать данные в logastash:
+1) запустить все сервисы и отправить сюда `http://127.0.0.1:5000/event`
+```json
+{
+    "type": "movie_progress",
+    "user_id": "4518e644-1ff3-4003-a14e-99dfe3fdd7ab",
+    "movie_id": "e9897504-9b73-40bb-a22e-815daf7a190d",
+    "progress": 1232
+}
+```
+перейдите в Management → Stack Management → Index Patterns и нажмите Create index patter имя `app-2024.08`.
+
+в файле `api/src/api/ugc_logs.json` уже есть шаблонные логи которые заполнятся 
+
+
 ## Проектная работа 9 спринта
 
 В этом спринте наша команда:

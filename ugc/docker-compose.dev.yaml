@@ -21,8 +21,6 @@ services:
       - kafka-1
       - kafka-2
     profiles: [ ugc ]
-    volumes:
-      - ugc_logs_json:/opt/app/src/logs
 
 
   ui:
@@ -107,7 +105,6 @@ services:
       context: ./filebeat_ugc_api
     volumes:
       - ./api/src/ugc_logs.json:/usr/share/filebeat/logs/ugc_logs.json:ro
-      - ugc_logs_json:/usr/share/filebeat/logs
     depends_on:
       - api
     profiles: [ elk ]
@@ -160,5 +157,3 @@ volumes:
     name: ya.practicum-kafka-2
   esdata:
     name: ya.practicum-esdata
-  ugc_logs_json:
-    name: ya.practicum-ugc_logs_json

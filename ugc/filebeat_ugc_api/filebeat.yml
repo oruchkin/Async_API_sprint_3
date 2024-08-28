@@ -1,0 +1,22 @@
+filebeat.inputs:
+  - type: filestream
+    enabled: true
+    paths:
+      - /usr/share/filebeat/logs/ugc_logs.json
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      service: ugc_api
+    scan_frequency: 1s  # Частота сканирования файла на новые записи
+    close_inactive: 5m  # Закрытие файла после 5 минут неактивности
+    ignore_older: 24h   # Игнорировать файлы старше 24 часов
+    clean_inactive: 48h # Очистить неактивные файлы после 48 часов
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
