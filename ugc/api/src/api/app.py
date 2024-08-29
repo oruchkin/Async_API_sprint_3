@@ -24,6 +24,9 @@ swagger = Swagger(app)
 # Логирование
 @app.before_request
 def log_request_info():
-    logger.info('Processing request', extra={'path': request.path, 'method': request.method})
+    logger.info(
+        "Processing request", extra={"path": request.path, "method": request.method}
+    )
+
 
 from .events import *  # noqa: F403, F401, E402

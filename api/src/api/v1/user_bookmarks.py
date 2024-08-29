@@ -2,6 +2,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
+from src.core.auth import AuthorizationProvider, TokenData
 from bson import ObjectId
 from fastapi import APIRouter, Depends
 from pydantic import AfterValidator
@@ -20,19 +21,25 @@ def check_object_id(value: str) -> str:
 
 
 @router.post("/")
-async def create_bookmark(film_id: UUID, user_id: UUID, userpref: UserPrefService = Depends(get_user_pref_service)):
-    return await userpref.add_movie_bookmark(user_id, film_id)
+async def create_bookmark(
+    film_id: UUID,
+    user: TokenData = Depends(AuthorizationProvider()),
+    userpref: UserPrefService = Depends(get_user_pref_service),
+):
+    return await userpref.add_movie_bookmark(user.user_id, film_id)
 
 
 @router.delete("/{bookmark_id}")
 async def delete_bookmark(
     bookmark_id: Annotated[str, AfterValidator(check_object_id)],
-    user_id: UUID,
+    user: TokenData = Depends(AuthorizationProvider()),
     userpref: UserPrefService = Depends(get_user_pref_service),
 ):
-    return await userpref.delete_movie_bookmark(ObjectId(bookmark_id), user_id)
+    return await userpref.delete_movie_bookmark(ObjectId(bookmark_id), user.user_id)
 
 
 @router.get("/")
-async def list_user_bookmarks(user_id: UUID, userpref: UserPrefService = Depends(get_user_pref_service)):
+async def list_user_bookmarks(
+    user_id: UUID, userpref: UserPrefService = Depends(get_user_pref_service)
+):
     return await userpref.list_user_bookmarks(user_id)
