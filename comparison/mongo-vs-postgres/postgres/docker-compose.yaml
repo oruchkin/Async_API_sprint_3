@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:13
+    volumes:
+      - locust-dbstorage:/var/lib/postgresql/data
+    ports: [5432:5432]
+    environment:
+      POSTGRES_DB: locust-test-db
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: password123
+
+volumes:
+  locust-dbstorage:

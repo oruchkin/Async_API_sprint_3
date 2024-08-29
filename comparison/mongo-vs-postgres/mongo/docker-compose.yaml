@@ -1,0 +1,10 @@
+services:
+  mongodb:
+    image: mongo
+    ports: [27017:27017]
+    restart: unless-stopped
+    volumes:
+      - mongodb_storage:/data/db
+
+volumes:
+  mongodb_storage:
