@@ -211,7 +211,8 @@ services:
   idp-base: &idp-base
     build:
         context: ./../idp
-    expose: [8000]
+    expose: [8000, 50051]
+    ports: [50051:50051, 29543:8000]
     profiles: [never]
 
   idp:
@@ -222,7 +223,6 @@ services:
 
   idp-dev:
     <<: *idp-base
-    ports: [29543:8000]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [admin-dev, api-dev]

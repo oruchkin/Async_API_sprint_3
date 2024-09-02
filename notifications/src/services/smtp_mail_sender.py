@@ -34,3 +34,8 @@ class SMTPMailSender:
             self._logger.info("Email %s was sent", subject)
         finally:
             server.close()
+
+
+def get_smtp_mail_sender() -> SMTPMailSender:
+    settings = SMTPSettings()
+    return SMTPMailSender(settings)
