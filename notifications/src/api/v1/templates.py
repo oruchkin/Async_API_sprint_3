@@ -56,4 +56,5 @@ async def send_template(
         user = await idp.get_user(user_id)
         subject = await renderer.render(template.subject, user_id)
         body = await renderer.render(template.body, user_id)
+        # TODO: Do not send, push into the queue
         smtp.send([user.email], subject, body)
