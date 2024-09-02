@@ -2,8 +2,8 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from src.core.auth import AuthorizationProvider, TokenData
 from fastapi import APIRouter, Body, Depends
+from src.core.auth import AuthorizationProvider, TokenData
 from src.services.film import FilmService, get_film_service
 from src.services.user_pref import UserPrefService, get_user_pref_service
 
@@ -45,10 +45,13 @@ async def set_like(
     user: TokenData = Depends(AuthorizationProvider()),
     rating: Annotated[
         int | None,
-        Body(
-            description="User rating 0..10, if None value will be removed", ge=0, le=10
-        ),
+        Body(description="User rating 0..10, if None value will be removed", ge=0, le=10),
     ] = None,
     userpref: UserPrefService = Depends(get_user_pref_service),
 ):
-    return await userpref.upsert_movie_rating(user.user_id, film_id, rating)
+    rating = await userpref.upsert_movie_rating(user.user_id, film_id, rating)
+    if rating != 0:
+        # TODO: Send notification
+        # notifications.send({ film_id, user_id, avg_rating })
+        pass
+    return rating

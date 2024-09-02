@@ -2,13 +2,12 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from src.core.auth import AuthorizationProvider, TokenData
 from bson import ObjectId
 from fastapi import APIRouter, Body, Depends
 from pydantic import AfterValidator
-from src.services.user_pref import UserPrefService, get_user_pref_service
-
 from src.api.v1.schemas.film_review_request import FilmReviewRequest
+from src.core.auth import AuthorizationProvider, TokenData
+from src.services.user_pref import UserPrefService, get_user_pref_service
 
 router = APIRouter()
 
@@ -29,6 +28,8 @@ async def sumbit_review(
     user: TokenData = Depends(AuthorizationProvider()),
     userpref: UserPrefService = Depends(get_user_pref_service),
 ):
+    # TODO: Send notification
+    # notifications.send({ film_id, user_id, review_id })
     return await userpref.create_movie_review(user.user_id, film_id, req.review)
 
 
@@ -52,9 +53,7 @@ async def list_reviews(
 async def set_like(
     review_id: Annotated[str, AfterValidator(check_object_id)],
     user: TokenData = Depends(AuthorizationProvider()),
-    like: Annotated[
-        bool | None, Body(description="User reaction, if None value will be removed")
-    ] = None,
+    like: Annotated[bool | None, Body(description="User reaction, if None value will be removed")] = None,
     userpref: UserPrefService = Depends(get_user_pref_service),
 ):
     await userpref.rate_movie_review(user.user_id, ObjectId(review_id), like)

@@ -46,5 +46,6 @@ async def start_grpc():
     server = grpc.aio.server()
     user_info_server.add_UserInfoServicer_to_server(UserInfoServicer(), server)
     server.add_insecure_port("[::]:50051")
+    server.add_insecure_port("0.0.0.0:50051")
     await server.start()
     await server.wait_for_termination()
