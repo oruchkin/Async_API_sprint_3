@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+// python -m grpc_tools.protoc -Igrpc_api=grpc_api/protos --python_out=grpc_api --pyi_out=grpc_api --grpc_python_out=grpc_api grpc_api/protos/user_info.proto
+
+service UserInfo {
+    rpc GetUser(GetUserRequest) returns (Info) {}
+
+    rpc GetAllUsers(stream GetUserRequest) returns (stream Info) {}
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message Info {
+    string id = 1;
+    string email = 2;
+}

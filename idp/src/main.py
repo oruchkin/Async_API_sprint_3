@@ -1,11 +1,12 @@
+import asyncio
 import logging.config
 import secrets
 import string
 
 import uvicorn
-from api.v1 import auth_google, auth_vk, roles, users
 from core.auth import BasicAuthBackend
 from core.errors_utils import error_to_json_response
+from core.grpc import serve, start_grpc
 from core.lifecycle import lifespan
 from core.logger import LOGGING
 from core.tracer import configure_tracer
@@ -16,6 +17,8 @@ from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
 from services.throttling_service import ThrottlingService
 from starlette.middleware.authentication import AuthenticationMiddleware
+
+from api.v1 import auth_google, auth_vk, roles, users
 
 load_dotenv()
 logging.config.dictConfig(LOGGING)
@@ -102,8 +105,9 @@ app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
 app.include_router(auth_vk.router, prefix="/api/v1/auth/vk", tags=["auth", "vk"])
 app.include_router(auth_google.router, prefix="/api/v1/auth/google", tags=["auth", "google"])
 
-if __name__ == "__main__":
-    uvicorn.run(
+
+async def start_fastapi():
+    config = uvicorn.Config(
         "main:app",
         host="0.0.0.0",
         port=8000,
@@ -111,3 +115,18 @@ if __name__ == "__main__":
         log_config=LOGGING,
         log_level=logging.DEBUG,
     )
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+# Main function to run both servers
+# God bless ChatGPT!
+async def main():
+    await asyncio.gather(
+        start_fastapi(),
+        start_grpc(),
+    )
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

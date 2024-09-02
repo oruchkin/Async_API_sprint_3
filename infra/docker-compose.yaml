@@ -218,7 +218,7 @@ services:
     <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [all, api, idp]
+    profiles: [all, api, idp, notify]
 
   idp-dev:
     <<: *idp-base
@@ -249,6 +249,14 @@ services:
     ports: [6831:6831/udp, 16686:16686]
     expose: [6831/udp, 6831]
     profiles: [api, api-dev, idp-dev, idp]
+
+  notify:
+    build:
+      context: ./../api
+    expose: [8000]
+    depends_on: [idp]
+    env_file: [.env]
+    profiles: [all, notify]
 
 volumes:
   dbstorage:

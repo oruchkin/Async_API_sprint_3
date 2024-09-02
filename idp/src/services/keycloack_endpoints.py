@@ -22,6 +22,9 @@ class KeycloakEndpoints:
     def list_users(self) -> str:
         return f"{self._settings.url}/admin/realms/{self._realm}/users"
 
+    def get_user(self, id: UUID) -> str:
+        return f"{self._settings.url}/admin/realms/{self._realm}/users/{id}"
+
     def get_user_with_idp(self, idp: str, id: str) -> str:
         # https://www.keycloak.org/docs-api/25.0.1/rest-api/index.html#_users
         return f"{self._settings.url}/admin/realms/{self._realm}/users?idpAlias={idp}&idpUserId={id}"
