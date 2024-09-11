@@ -54,8 +54,6 @@ services:
     image: nginx:1.25-alpine
     volumes:
       - ./../idp/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - api
     ports: [45324:80]
     profiles: [idp, api]
 
@@ -211,18 +209,20 @@ services:
   idp-base: &idp-base
     build:
         context: ./../idp
-    expose: [8000]
+    expose: [8000, 50051]
+    ports: 
+      - "[::]:50051:50051"
+      - 29543:8000
     profiles: [never]
 
   idp:
     <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [all, api, idp]
+    profiles: [all, api, idp, notify]
 
   idp-dev:
     <<: *idp-base
-    ports: [29543:8000]
     depends_on: [postgres-dev]
     env_file: [.env, .env.dev]
     profiles: [admin-dev, api-dev]
@@ -249,6 +249,14 @@ services:
     ports: [6831:6831/udp, 16686:16686]
     expose: [6831/udp, 6831]
     profiles: [api, api-dev, idp-dev, idp]
+
+  notify:
+    build:
+      context: ./../api
+    expose: [8000]
+    depends_on: [idp]
+    env_file: [.env]
+    profiles: [all, notify]
 
 volumes:
   dbstorage:

@@ -64,6 +64,14 @@ class KeycloackClient:
         url = self._endpoints.single_role(role.id)
         await self._send("PUT", url, payload)
 
+    async def get_user(self, user_id: UUID) -> models.UserEntryModel:
+        """
+        Get user by id
+        """
+        url = self._endpoints.get_user(user_id)
+        data = await self._get(url)
+        return models.UserEntryModel.model_validate(data)
+
     async def list_users(self) -> list[models.UserEntryModel]:
         """
         Get all users

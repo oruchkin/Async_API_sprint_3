@@ -1,12 +1,13 @@
 from uuid import UUID
 
-import api.v1.schemas as schemas
 from core.auth import AuthorizationProvider, TokenData, bearer_security
 from core.verification import verify_token
 from fastapi import APIRouter, Depends, Form
 from fastapi.security import HTTPAuthorizationCredentials
 from services.keycloak_client import KeycloackClient, get_keycloak_service
 from services.oidc_client import OIDCClient, get_oidc_service
+
+import api.v1.schemas as schemas
 
 router = APIRouter()
 
@@ -143,6 +144,15 @@ async def create_user(
     await keycloak.create_user(username, email, password)
     created_user = await keycloak.get_user_with_email(email)
     return schemas.User.model_validate(created_user)
+
+
+@router.get("/{user_id}", response_model=schemas.User, summary="Get user info")
+async def get_user(
+    user_id: UUID,
+    keycloak: KeycloackClient = Depends(get_keycloak_service),
+) -> schemas.User:
+    user = await keycloak.get_user(user_id)
+    return schemas.User.model_validate(user)
 
 
 @router.get(

@@ -13,3 +13,5 @@ opentelemetry-sdk==1.17.0
 opentelemetry-instrumentation-fastapi==0.38b0
 opentelemetry-exporter-jaeger==1.17.0
 redis==5.0.3
+grpcio~=1.66.1
+grpcio-tools~=1.66.1
