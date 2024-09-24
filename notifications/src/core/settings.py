@@ -24,3 +24,13 @@ class IDPSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="IDP_")
     url: str = ""
     grpc: str = ""
+
+
+class RabbitMQSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="RABBITMQ_")
+    host: str = ""
+    login: str = ""
+    password: str = ""
+
+    def create_url(self) -> str:
+        return f"amqp://{self.login}:{self.password}@{self.host}:5672/"
