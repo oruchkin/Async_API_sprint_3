@@ -11,6 +11,7 @@ from src.api.v1 import events, notify, templates
 from src.core.lifecycle import lifespan
 from src.core.logger import LOGGING
 from src.core.tracer import configure_tracer
+from src.db.rabbitmq import rabbit_router
 
 load_dotenv()
 logging.config.dictConfig(LOGGING)
@@ -26,7 +27,8 @@ app = FastAPI(
     docs_url="/api/openapi",
     openapi_url="/api/openapi.json",
     default_response_class=ORJSONResponse,
-    lifespan=lifespan,
+    # https://github.com/airtai/faststream/issues/974
+    lifespan=rabbit_router.lifespan_context,  # lifespan,
     log_config=LOGGING,
     log_level=logging.DEBUG,
 )
@@ -44,7 +46,7 @@ async def add_trace_id(request: Request, call_next):
         response.headers["X-Request-Id"] = request_id or "NA"
         return response
     else:
-        logger.warn("Trace not capturing, check middleware sequence")
+        logger.warning("Trace not capturing, check middleware sequence")
         return await call_next(request)
 
 

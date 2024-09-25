@@ -1,8 +1,9 @@
 import logging
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from faststream.rabbit import RabbitBroker
-from src.core.settings import RabbitMQSettings
+from src.db.rabbitmq import default_queue, get_rabbitmq_broker
 
 router = APIRouter()
 
@@ -10,11 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/notify", summary="Отправляем нотификация")
-async def do_notify() -> None:
-    settings = RabbitMQSettings()
-    queue_url = settings.create_url()
-    rabbit_broker = RabbitBroker(queue_url, logger=logging.getLogger(__name__), log_level=logging.INFO)
-    await rabbit_broker.connect()
-    smth = await rabbit_broker.publish("Hi there", routing_key="hello_default")
-    if smth and smth.delivery.reply_code:
-        logger.warning(f"Failed {smth.delivery.reply_code} {smth.delivery.reply_text}")
+async def do_notify(rabbitmq: Annotated[RabbitBroker, Depends(get_rabbitmq_broker)]) -> None:
+    smth = await rabbitmq.publish({"m": {"key": "Hi there"}}, queue=default_queue)
+    logger.info(smth)
