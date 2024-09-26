@@ -27,8 +27,7 @@ app = FastAPI(
     docs_url="/api/openapi",
     openapi_url="/api/openapi.json",
     default_response_class=ORJSONResponse,
-    # https://github.com/airtai/faststream/issues/974
-    lifespan=rabbit_router.lifespan_context,  # lifespan,
+    lifespan=lifespan,
     log_config=LOGGING,
     log_level=logging.DEBUG,
 )
@@ -68,6 +67,8 @@ async def ensure_request_id_header(request: Request, call_next):
 
     return await call_next(request)
 
+
+app.include_router(rabbit_router)
 
 app.include_router(notify.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(events.router, prefix="/api/v1/events", tags=["events"])

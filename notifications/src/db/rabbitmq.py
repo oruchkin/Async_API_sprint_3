@@ -9,7 +9,6 @@ from src.core.settings import RabbitMQSettings
 
 logger = logging.getLogger(__name__)
 
-
 settings = RabbitMQSettings()
 queue_url = settings.create_url()
 rabbit_router = RabbitRouter(queue_url)
