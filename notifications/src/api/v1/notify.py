@@ -1,8 +1,14 @@
 import logging
 from http import HTTPStatus
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException
+from src import models
+from src.services.notifications_sent_service import (
+    NotificationsSentService,
+    get_notifications_sent_service,
+)
 from src.services.notifications_service import (
     NotificationsService,
     get_notifications_service,
@@ -47,5 +53,16 @@ async def notify_by_template(
         if model.last_sent:
             await queue.publish_notification(model)
         return schemas.NotificationSummary.model_validate(model)
+    except RuntimeError as err:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=repr(err))
+
+
+@router.get("/notify/list/{user_id}", summary="Получаем нотификации для пользователя")
+async def get_user_notifications(
+    user_id: UUID,
+    service: Annotated[NotificationsSentService, Depends(get_notifications_sent_service)],
+) -> list[models.NotificationSent]:
+    try:
+        return await service.get(user_id)
     except RuntimeError as err:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=repr(err))

@@ -4,11 +4,11 @@ services:
     volumes:
       - dbstorage:/var/lib/postgresql/data
     expose: [5432]
+    ports: [5432:5432]
     restart: always
 
   postgres:
-    extends: postgres-base
+    <<: *postgres-base
 
   postgres-dev:
     <<: *postgres-base
-    ports: [5432:5432]

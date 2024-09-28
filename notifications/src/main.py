@@ -1,6 +1,7 @@
 import asyncio
 import logging.config
 
+import src.queue  # noqa
 from dotenv import load_dotenv
 from src.core.logger import LOGGING
 from src.fastapi_app import start_fastapi

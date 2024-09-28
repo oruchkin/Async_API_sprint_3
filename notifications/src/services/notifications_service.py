@@ -70,11 +70,11 @@ class NotificationsService:
         await collection.insert_one(document)
         return notification
 
-    async def get_next_for_processing(self, slice: datetime) -> models.Notification | None:
+    async def get_next_for_processing(self) -> models.Notification | None:
         collection = await self._get_collection()
-        # last_send is none or lte slice time == not gt
+        now = datetime.now(UTC)
         found = await collection.find_one_and_update(
-            {"next_send": {"$gte": slice}, "last_sent": {"$not": {"$gt": slice}}, "status": "idle"},
+            {"next_send": {"$lte": now}, "last_sent": {"$not": {"$gt": "$next_send"}}, "status": "idle"},
             {"$set": {"status": "processing"}},
         )
         return NotificationsService._from_mongo_document(found) if found else None

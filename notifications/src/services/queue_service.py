@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Depends
 from faststream.rabbit.fastapi import RabbitBroker
 from src import models
-from src.db.rabbitmq import default_queue, get_rabbitmq_broker
+from src.db.rabbitmq import default_queue, get_rabbitmq_broker, sent_notifications_queue
 
 
 class QueueService:
@@ -15,6 +15,11 @@ class QueueService:
     async def publish_notification(self, notification: models.Notification) -> None:
         payload = models.QueuePayload(message=notification)
         status = await self._queue.publish(payload.model_dump(), queue=default_queue)
+        self._logger.info(status)
+
+    async def publish_sent_notification(self, notification: models.NotificationSent) -> None:
+        payload = models.NotificationSentQueuePayload(message=notification)
+        status = await self._queue.publish(payload.model_dump(), queue=sent_notifications_queue)
         self._logger.info(status)
 
 

@@ -21,8 +21,7 @@ async def send_notifications(
     notifications: Annotated[NotificationsService, Depends(get_notifications_service)],
     queue: Annotated[QueueService, Depends(get_queue)],
 ):
-    slice = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=NOTIFICATION_TIMEOUT_SEC)
-    while notification := await notifications.get_next_for_processing(slice):
+    while notification := await notifications.get_next_for_processing():
         print(f"Sent notification {notification.id}")
         await queue.publish_notification(notification)
         await notifications.confirm(notification)

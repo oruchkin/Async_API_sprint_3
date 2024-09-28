@@ -36,3 +36,9 @@ class RabbitMQSettings(BaseSettings):
 
     def create_url(self) -> str:
         return f"amqp://{self.login}:{self.password}@{self.host}:5672/"
+
+
+class SendgridSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="SENDGRID_")
+    api_key: str = ""
+    sender: str = ""

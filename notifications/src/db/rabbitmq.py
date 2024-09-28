@@ -1,5 +1,4 @@
 import logging
-from typing import Callable
 
 from faststream.rabbit import RabbitQueue
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
@@ -11,7 +10,8 @@ settings = RabbitMQSettings()
 queue_url = settings.create_url()
 rabbit_router = RabbitRouter(queue_url)
 
-default_queue = RabbitQueue("hello_default", durable=True)
+default_queue = RabbitQueue("notifications_queue", durable=True)
+sent_notifications_queue = RabbitQueue("notifications_sent_queue", durable=True)
 
 
 def get_rabbitmq_broker() -> RabbitBroker:
