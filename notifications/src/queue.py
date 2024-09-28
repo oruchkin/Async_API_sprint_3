@@ -42,9 +42,11 @@ async def get_notification_mail_sender(
             user = await idp.get_user(user_id)
             subject = await renderer.render(message.subject, user_id)
             body = await renderer.render(message.body, user_id)
-            # We can use setting to switch between providers
-            sendgrid.send(user.email, subject, body)
-            # smtp.send([user.email], subject, body)
+            if sendgrid.enabled:
+                sendgrid.send(user.email, subject, body)
+            else:
+                smtp.send([user.email], subject, body)
+
             sent = NotificationSent(
                 notification_id=message.id,
                 user=user_id,

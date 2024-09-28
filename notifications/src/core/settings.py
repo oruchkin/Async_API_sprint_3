@@ -40,5 +40,6 @@ class RabbitMQSettings(BaseSettings):
 
 class SendgridSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SENDGRID_")
+    enabled: bool = False
     api_key: str = ""
     sender: str = ""

@@ -11,6 +11,10 @@ class SendgridMailSender:
         self._client = SendGridAPIClient(settings.api_key)
         self._logger = logging.getLogger(__name__)
 
+    @property
+    def enabled(self) -> bool:
+        return self._settings.enabled
+
     def send(self, to: str, subject: str, body: str) -> None:
         message = Mail(
             from_email=self._settings.sender,
