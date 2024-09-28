@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-NOTIFICATION_TIMEOUT_SEC = 2
+NOTIFICATION_TIMEOUT_SEC = 60 * 5
 
 
 class DjangoSettings(BaseSettings):

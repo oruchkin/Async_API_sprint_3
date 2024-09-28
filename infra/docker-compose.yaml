@@ -19,7 +19,7 @@ services:
     restart: unless-stopped 
     volumes:
       - mongodb_storage:/data/db
-    profiles: [api, api-dev]
+    profiles: [api, api-dev, notify-dev]
 
   admin:
     build:
