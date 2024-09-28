@@ -1,3 +1,4 @@
 from .notification import Notification
 from .notification_distribution import NotificationDistribution
 from .notification_schedule import NotificationSchedule
+from .queue_payload import QueuePayload
