@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+NOTIFICATION_TIMEOUT_SEC = 2
+
 
 class DjangoSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="ADMIN_")

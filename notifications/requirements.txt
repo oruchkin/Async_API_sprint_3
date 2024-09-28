@@ -18,3 +18,4 @@ pika~=1.3.2
 faststream
 aio-pika
 sendgrid
+croniter

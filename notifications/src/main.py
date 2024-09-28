@@ -1,6 +1,10 @@
+import asyncio
+import datetime
 import logging.config
 import secrets
 import string
+from random import random
+from typing import Annotated
 
 import uvicorn
 from dotenv import load_dotenv
@@ -8,10 +12,16 @@ from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
 from src.api.v1 import events, notify, templates
+from src.core.dependencies_utils import solve_and_run
 from src.core.lifecycle import lifespan
 from src.core.logger import LOGGING
+from src.core.settings import NOTIFICATION_TIMEOUT_SEC
 from src.core.tracer import configure_tracer
 from src.db.rabbitmq import rabbit_router
+from src.services.notifications_service import (
+    NotificationsService,
+    get_notifications_service,
+)
 
 load_dotenv()
 logging.config.dictConfig(LOGGING)
@@ -75,8 +85,24 @@ app.include_router(events.router, prefix="/api/v1/events", tags=["events"])
 app.include_router(templates.router, prefix="/api/v1/templates", tags=["templates"])
 
 
-if __name__ == "__main__":
-    uvicorn.run(
+async def send_notifications(notifications: Annotated[NotificationsService, get_notifications_service]):
+    slice = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=NOTIFICATION_TIMEOUT_SEC)
+    while notification := await notifications.get_next_for_processing(slice):
+        print(f"Sent notification {notification.id}")
+        await notifications.confirm(notification)
+
+
+async def start_cron():
+    # desync workers (if multiple)
+    await asyncio.sleep(random() * 60)
+    while 1:
+        await asyncio.sleep(2)
+        logger.info("Do the cron job")
+        solve_and_run(send_notifications, "send_notifications", app)
+
+
+async def start_fastapi():
+    config = uvicorn.Config(
         "main:app",
         host="0.0.0.0",
         port=8000,
@@ -84,3 +110,16 @@ if __name__ == "__main__":
         log_config=LOGGING,
         log_level=logging.DEBUG,
     )
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+async def main():
+    await asyncio.gather(
+        start_fastapi(),
+        start_cron(),
+    )
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
