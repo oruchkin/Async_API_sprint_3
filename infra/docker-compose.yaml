@@ -1,23 +1,17 @@
 services:
-  postgres-base: &postgres-base
-    image: postgres:13
-    volumes:
-      - dbstorage:/var/lib/postgresql/data
-    expose: [5432]
-    restart: always
-    env_file: [.env]
-    profiles: ["never"]
-
   postgres:
-    extends: postgres-base
-    profiles: [all, admin, etl, api, idp]
+    extends:
+      file: ./parts/compose.postgres.yaml
+      service: postgres
+    profiles: [all, admin, etl, api, idp, notify, notify-dev]
+    env_file: [.env]
 
   postgres-dev:
-    <<: *postgres-base
-    ports: [5432:5432]
+    extends:
+      file: ./parts/compose.postgres.yaml
+      service: postgres-dev
+    profiles: [admin-dev, etl-dev, api-dev, idp-dev, init]
     env_file: [.env.dev]
-    profiles: ["admin-dev", "etl-dev", "api-dev", "idp-dev", "init"]
-
 
   mongodb:
     image: mongo
@@ -25,7 +19,7 @@ services:
     restart: unless-stopped 
     volumes:
       - mongodb_storage:/data/db
-    profiles: [api, api-dev]
+    profiles: [api, api-dev, notify-dev]
 
   admin:
     build:
@@ -219,7 +213,7 @@ services:
     <<: *idp-base
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [all, api, idp, notify]
+    profiles: [all, api, idp, notify, notify-dev]
 
   idp-dev:
     <<: *idp-base
@@ -239,16 +233,22 @@ services:
     build:
       context: ./../idp/keycloak
     expose: [8080]
-    ports: [8080:8080]
+    ports: [32547:8080]
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [api, idp]
+    profiles: [api, idp, notify-dev]
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports: [6831:6831/udp, 16686:16686]
     expose: [6831/udp, 6831]
     profiles: [api, api-dev, idp-dev, idp]
+
+  rabbitmq:
+    extends:
+      file: ./parts/compose.rabbitmq.yaml
+      service: rabbitmq
+    profiles: [notify, notify-dev]
 
   notify:
     build:
@@ -274,5 +274,7 @@ volumes:
   mongodb_storage:
     name: admin-panel-mongo
     external: true
-
-
+  rabbitmq_log:
+    name: rabbitmq_log
+  rabbitmq_data:
+    name: rabbitmq_data

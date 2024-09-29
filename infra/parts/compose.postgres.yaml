@@ -1,0 +1,14 @@
+services:
+  postgres-base: &postgres-base
+    image: postgres:13
+    volumes:
+      - dbstorage:/var/lib/postgresql/data
+    expose: [5432]
+    ports: [5432:5432]
+    restart: always
+
+  postgres:
+    <<: *postgres-base
+
+  postgres-dev:
+    <<: *postgres-base
