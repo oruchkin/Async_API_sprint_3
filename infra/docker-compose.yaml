@@ -253,7 +253,7 @@ services:
   notify:
     build:
       context: ./../notifications
-    expose: [8000]
+    expose: [8000, 8765]
     depends_on: [idp]
     env_file: [.env]
     profiles: [all, notify]
