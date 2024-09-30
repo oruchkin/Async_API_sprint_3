@@ -28,6 +28,12 @@ class IDPSettings(BaseSettings):
     grpc: str = ""
 
 
+class KeycloakSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="IDP_KEYCLOAK_")
+    url: str = ""
+    client: str = ""
+
+
 class RabbitMQSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="RABBITMQ_")
     host: str = ""

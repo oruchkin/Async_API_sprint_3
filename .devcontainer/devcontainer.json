@@ -81,7 +81,7 @@
         }
     },
     "forwardPorts": [
-        8000, 50051
+        8000, 50051, 8765
     ],
     "postCreateCommand": "find . -name \"requirements.txt\" -type f -exec pip install -r '{}' ';'"
 }
