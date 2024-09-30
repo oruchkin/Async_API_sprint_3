@@ -19,3 +19,4 @@ faststream
 aio-pika
 sendgrid
 croniter
+websockets

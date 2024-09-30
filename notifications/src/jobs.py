@@ -4,10 +4,9 @@ import logging
 from random import random
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, FastAPI
 from src.core.dependencies_utils import solve_and_run
 from src.core.settings import NOTIFICATION_TIMEOUT_SEC
-from src.fastapi_app import app
 from src.services.notifications_service import (
     NotificationsService,
     get_notifications_service,
@@ -27,7 +26,7 @@ async def send_notifications(
         await notifications.confirm(notification)
 
 
-async def start_cron():
+async def start_cron(app: FastAPI) -> None:
     # desync workers (if multiple)
     await asyncio.sleep(random() * 60)
     while 1:

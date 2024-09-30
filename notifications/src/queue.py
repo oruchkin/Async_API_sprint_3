@@ -24,6 +24,7 @@ from src.services.sendgrid_mail_sender import (
 )
 from src.services.smtp_mail_sender import SMTPMailSender, get_smtp_mail_sender
 from src.services.template_renderer import TemplateRenderer, get_template_renderer
+from src.services.websockets_service import WebsocketsService, get_websocket_service
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ async def get_notification_mail_sender(
             user = await idp.get_user(user_id)
             subject = await renderer.render(message.subject, user_id)
             body = await renderer.render(message.body, user_id)
+
             if sendgrid.enabled:
                 sendgrid.send(user.email, subject, body)
             else:
@@ -59,6 +61,16 @@ async def get_notification_mail_sender(
     return sender
 
 
+def get_notifications_socket_sender(
+    socket: Annotated[WebsocketsService, Depends(get_websocket_service)],
+) -> Sender:
+    async def sender(message: Notification) -> None:
+        for user_id in message.users:
+            await socket.notify(user_id, message.body)
+
+    return sender
+
+
 @rabbit_router.subscriber(queue=default_queue)
 async def handle_rabbit_message(payload: QueuePayload):
     # Asynchronous handling of the message
@@ -68,7 +80,9 @@ async def handle_rabbit_message(payload: QueuePayload):
         send: Sender = await solve_and_run(get_notification_mail_sender, "mail_sender", app)
         await send(payload.message)
     else:
-        print(f"Unsupported channel {payload.message.channel}")
+        send: Sender = await solve_and_run(get_notifications_socket_sender, "socket_sender", app)
+        await send(payload.message)
+
     print("Message processed")
 
 
