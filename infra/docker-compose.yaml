@@ -19,7 +19,7 @@ services:
     restart: unless-stopped 
     volumes:
       - mongodb_storage:/data/db
-    profiles: [api, api-dev, notify-dev]
+    profiles: [api, api-dev, notify, notify-dev]
 
   admin:
     build:
@@ -236,7 +236,7 @@ services:
     ports: [32547:8080]
     depends_on: [postgres]
     env_file: [.env]
-    profiles: [api, idp, notify-dev]
+    profiles: [api, idp, notify, notify-dev]
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -252,7 +252,7 @@ services:
 
   notify:
     build:
-      context: ./../api
+      context: ./../notifications
     expose: [8000]
     depends_on: [idp]
     env_file: [.env]
