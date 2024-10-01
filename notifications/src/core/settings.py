@@ -49,3 +49,8 @@ class SendgridSettings(BaseSettings):
     enabled: bool = False
     api_key: str = ""
     sender: str = ""
+
+
+class MongoSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MONGO_")
+    connection: str = ""

@@ -5,7 +5,8 @@ from bson import ObjectId
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from src import models
-from src.db.mogno import get_mongo
+
+from notifications.src.db.mongo import get_mongo
 
 
 class NotificationsSentService:
