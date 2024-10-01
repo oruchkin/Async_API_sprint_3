@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from notifications.src.models import notification
+
 NOTIFICATION_TIMEOUT_SEC = 60 * 5
 
 
@@ -39,6 +41,9 @@ class RabbitMQSettings(BaseSettings):
     host: str = ""
     login: str = ""
     password: str = ""
+
+    notifications_queue: str = "notifications_queue"
+    notifications_sent_queue: str = "notifications_sent_queue"
 
     def create_url(self) -> str:
         return f"amqp://{self.login}:{self.password}@{self.host}:5672/"
