@@ -1,7 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from notifications.src.models import notification
-
 NOTIFICATION_TIMEOUT_SEC = 60 * 5
 
 
@@ -59,3 +57,11 @@ class SendgridSettings(BaseSettings):
 class MongoSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MONGO_")
     connection: str = ""
+
+
+class MailhogSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MAILHOG_")
+    enabled: bool = False
+    host: str = ""
+    port: int = 0
+    sender: str = ""

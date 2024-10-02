@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
-from src.api.v1 import events, notify, templates
+from src.api.v1 import notify, templates
 from src.core.lifecycle import lifespan
 from src.core.logger import LOGGING
 from src.core.tracer import configure_tracer
@@ -71,7 +71,6 @@ async def ensure_request_id_header(request: Request, call_next):
 app.include_router(rabbit_router)
 
 app.include_router(notify.router, prefix="/api/v1/notifications", tags=["notifications"])
-app.include_router(events.router, prefix="/api/v1/events", tags=["events"])
 app.include_router(templates.router, prefix="/api/v1/templates", tags=["templates"])
 
 

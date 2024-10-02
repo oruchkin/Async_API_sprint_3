@@ -13,6 +13,7 @@ from src.models import (
     QueuePayload,
 )
 from src.services.idp_client import IDPClient, get_idp_client
+from src.services.mailhog_mail_sender import MailhogMailSender, get_mailhog_mail_sender
 from src.services.notifications_sent_service import (
     NotificationsSentService,
     get_notifications_sent_service,
@@ -36,6 +37,7 @@ async def get_notification_mail_sender(
     idp: Annotated[IDPClient, Depends(get_idp_client)],
     smtp: Annotated[SMTPMailSender, Depends(get_smtp_mail_sender)],
     sendgrid: Annotated[SendgridMailSender, Depends(get_sendgrid_mail_sender)],
+    mailhog: Annotated[MailhogMailSender, Depends(get_mailhog_mail_sender)],
     queue: Annotated[QueueService, Depends(get_queue)],
 ) -> Sender:
     async def sender(message: Notification) -> None:
@@ -44,7 +46,9 @@ async def get_notification_mail_sender(
             subject = await renderer.render(message.subject, user_id)
             body = await renderer.render(message.body, user_id)
 
-            if sendgrid.enabled:
+            if mailhog.enabled:
+                mailhog.send(user.email, subject, body)
+            elif sendgrid.enabled:
                 sendgrid.send(user.email, subject, body)
             else:
                 smtp.send([user.email], subject, body)

@@ -7,9 +7,8 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from src import models
 from src.core.settings import NOTIFICATION_TIMEOUT_SEC
+from src.db.mongo import get_mongo
 from src.services.templates_service import TemplatesService, get_templates_service
-
-from notifications.src.db.mongo import get_mongo
 
 
 class NotificationsService:
