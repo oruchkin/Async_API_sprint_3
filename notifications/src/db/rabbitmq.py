@@ -10,8 +10,8 @@ settings = RabbitMQSettings()
 queue_url = settings.create_url()
 rabbit_router = RabbitRouter(queue_url)
 
-default_queue = RabbitQueue("notifications_queue", durable=True)
-sent_notifications_queue = RabbitQueue("notifications_sent_queue", durable=True)
+default_queue = RabbitQueue(settings.notifications_queue, durable=True)
+sent_notifications_queue = RabbitQueue(settings.notifications_sent_queue, durable=True)
 
 
 def get_rabbitmq_broker() -> RabbitBroker:

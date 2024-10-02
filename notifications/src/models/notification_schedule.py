@@ -9,4 +9,7 @@ class NotificationSchedule(BaseModel):
     next_send: datetime | None
 
     schedule: str | None
-    "cron-style schedule"
+    """
+    Cron-style schedule,
+    e.g. "10 * * * *" for every hour at 10 minutes past.
+    """

@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import Any, Callable, Literal
+from http import HTTPMethod
+from typing import Any, Callable
 from uuid import UUID
 
 import aiohttp
@@ -9,8 +10,6 @@ import src.services.idp_grpc.user_info_pb2 as user_info_pb2
 import src.services.idp_grpc.user_info_pb2_grpc as user_info_pb2_grpc
 from opentelemetry import trace
 from src.core.settings import IDPSettings
-
-Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
 
 tracer = trace.get_tracer(__name__)
 
@@ -28,7 +27,7 @@ class IDPClient:
         except grpc.aio._call.AioRpcError:
             self._logger.exception("Failed to get user with grpc %s", id)
             url = f"{self._settings.url}/api/v1/users/{id}"
-            response = await self._send("GET", url)
+            response = await self._send(HTTPMethod.GET, url)
             self._logger.info("Succeed %s", json.dumps(response))
             return user_info_pb2.Info(id=str(id), email=response["email"])
 
@@ -37,26 +36,27 @@ class IDPClient:
             stub = user_info_pb2_grpc.UserInfoStub(channel)
             request = user_info_pb2.GetUserRequest(id=str(id))
             response = await stub.GetUser(request)
-            print(f"User Info: name: {response.name}")
             return response
 
     @staticmethod
-    def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
+    def _get_func_by_verb(verb: HTTPMethod, session: aiohttp.ClientSession) -> Callable:
         match verb:
-            case "GET":
+            case HTTPMethod.GET:
                 return session.get
-            case "POST":
+            case HTTPMethod.POST:
                 return session.post
-            case "DELETE":
+            case HTTPMethod.DELETE:
                 return session.delete
-            case "PUT":
+            case HTTPMethod.PUT:
                 return session.put
-            case "PATCH":
+            case HTTPMethod.PATCH:
                 return session.patch
+
+        raise ValueError(f"Unsupported verb {verb}")
 
     async def _send(
         self,
-        verb: Verb,
+        verb: HTTPMethod,
         url: str,
         json: Any | None = None,
         data: Any | None = None,

@@ -40,6 +40,9 @@ class RabbitMQSettings(BaseSettings):
     login: str = ""
     password: str = ""
 
+    notifications_queue: str = "notifications_queue"
+    notifications_sent_queue: str = "notifications_sent_queue"
+
     def create_url(self) -> str:
         return f"amqp://{self.login}:{self.password}@{self.host}:5672/"
 
@@ -48,4 +51,17 @@ class SendgridSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SENDGRID_")
     enabled: bool = False
     api_key: str = ""
+    sender: str = ""
+
+
+class MongoSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MONGO_")
+    connection: str = ""
+
+
+class MailhogSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MAILHOG_")
+    enabled: bool = False
+    host: str = ""
+    port: int = 0
     sender: str = ""

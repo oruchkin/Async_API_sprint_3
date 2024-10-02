@@ -1,8 +1,8 @@
 import datetime
 import json
 from functools import lru_cache
-from http import HTTPStatus
-from typing import Any, Callable, Literal, cast
+from http import HTTPMethod, HTTPStatus
+from typing import Any, Callable, cast
 from uuid import UUID
 
 import aiohttp
@@ -16,8 +16,6 @@ from pydantic import TypeAdapter
 from services.keycloack_endpoints import KeycloakEndpoints
 
 from .oidc_client import OIDCClient, get_oidc_service
-
-Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
 
 tracer = trace.get_tracer(__name__)
 
@@ -49,11 +47,11 @@ class KeycloackClient:
         id = await self._get_client_id()
         url = self._endpoints.roles(id)
         payload = {"name": name, "clientRole": False, "description": description or ""}
-        await self._send("POST", url, payload)
+        await self._send(HTTPMethod.POST, url, payload)
 
     async def delete_role(self, role_id: UUID) -> None:
         url = self._endpoints.single_role(role_id)
-        await self._send("DELETE", url)
+        await self._send(HTTPMethod.DELETE, url)
 
     async def modify_role(self, role: models.RoleEntryModel) -> None:
         payload = {
@@ -62,7 +60,7 @@ class KeycloackClient:
             "description": role.description,
         }
         url = self._endpoints.single_role(role.id)
-        await self._send("PUT", url, payload)
+        await self._send(HTTPMethod.PUT, url, payload)
 
     async def get_user(self, user_id: UUID) -> models.UserEntryModel:
         """
@@ -115,7 +113,7 @@ class KeycloackClient:
         Disconnect user from external idp
         """
         url = self._endpoints.federeated_idp(user_id, idp)
-        await self._send("DELETE", url)
+        await self._send(HTTPMethod.DELETE, url)
 
     async def create_user(self, username: str, email: str | None = None, password: str | None = None) -> None:
         """
@@ -161,7 +159,7 @@ class KeycloackClient:
         payload = [{"id": str(role.id), "name": role.name}]
         id = await self._get_client_id()
         url = self._endpoints.set_user_role(user_id, id)
-        await self._send("DELETE", url, payload)
+        await self._send(HTTPMethod.DELETE, url, payload)
 
     async def reset_password(self, user_id: UUID, password: str) -> None:
         """
@@ -169,11 +167,11 @@ class KeycloackClient:
         """
         payload = {"temporary": False, "type": "password", "value": password}
         url = self._endpoints.reset_user_password(user_id)
-        await self._send("POST", url, payload)
+        await self._send(HTTPMethod.POST, url, payload)
 
     async def user_logout_all(self, user_id: UUID) -> None:
         url = self._endpoints.delete_user_sessions(user_id)
-        await self._send("POST", url)
+        await self._send(HTTPMethod.POST, url)
 
     async def token_exchange_direct_naked_impersonation(self, user_id: UUID) -> models.TokenModel:
         # https://www.keycloak.org/docs/latest/securing_apps/#direct-naked-impersonation
@@ -193,21 +191,23 @@ class KeycloackClient:
                 return models.TokenModel.model_validate(data)
 
     @staticmethod
-    def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
+    def _get_func_by_verb(verb: HTTPMethod, session: aiohttp.ClientSession) -> Callable:
         match verb:
-            case "GET":
+            case HTTPMethod.GET:
                 return session.get
-            case "POST":
+            case HTTPMethod.POST:
                 return session.post
-            case "DELETE":
+            case HTTPMethod.DELETE:
                 return session.delete
-            case "PUT":
+            case HTTPMethod.PUT:
                 return session.put
-            case "PATCH":
+            case HTTPMethod.PATCH:
                 return session.patch
 
+        raise ValueError(f"Unsupported verb {verb}")
+
     @backoff.on_exception(backoff.expo, errors.NotAuthorizedError, max_tries=2)
-    async def _send(self, verb: Verb, url: str, payload: Any | None = None, data: Any | None = None) -> Any:
+    async def _send(self, verb: HTTPMethod, url: str, payload: Any | None = None, data: Any | None = None) -> Any:
         headers = await self._get_request_headers()
         async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
             func = KeycloackClient._get_func_by_verb(verb, session)
@@ -215,10 +215,10 @@ class KeycloackClient:
                 return await self._handle_failed_response(response)
 
     async def _get(self, url: str) -> Any:
-        return await self._send("GET", url)
+        return await self._send(HTTPMethod.GET, url)
 
     async def _post(self, url: str, json_payload: Any) -> Any:
-        return await self._send("POST", url, json_payload)
+        return await self._send(HTTPMethod.POST, url, json_payload)
 
     async def _get_request_headers(self) -> dict:
         return {"Authorization": await self._get_auth_header_value(), "Content-Type": "application/json"}
