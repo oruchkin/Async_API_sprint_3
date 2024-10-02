@@ -1,12 +1,11 @@
 import json
 from functools import lru_cache
-from typing import Any, Callable, Literal
+from http import HTTPMethod
+from typing import Any, Callable
 
 import aiohttp
-from src.core.settings import IDPSettings
 from opentelemetry import trace
-
-Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
+from src.core.settings import IDPSettings
 
 tracer = trace.get_tracer(__name__)
 
@@ -19,34 +18,34 @@ class IDPClientService:
     async def info(self) -> Any:
         url = f"{self._settings.url}/api/v1/users/token"
         payload = {"login": "jonny4@example.com", "password": "sample-password123"}
-        smth = await self._send("POST", url, data=payload)
+        smth = await self._send(HTTPMethod.POST, url, data=payload)
 
         print(smth)
 
     async def introspect(self, token: str) -> bool:
         url = f"{self._settings.url}/api/v1/users/introspect"
-        response = await self._send(
-            "POST", url, headers={"Authorization": f"Bearer {token}"}
-        )
+        response = await self._send(HTTPMethod.POST, url, headers={"Authorization": f"Bearer {token}"})
         return bool(response.get("valid", False))
 
     @staticmethod
-    def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
+    def _get_func_by_verb(verb: HTTPMethod, session: aiohttp.ClientSession) -> Callable:
         match verb:
-            case "GET":
+            case HTTPMethod.GET:
                 return session.get
-            case "POST":
+            case HTTPMethod.POST:
                 return session.post
-            case "DELETE":
+            case HTTPMethod.DELETE:
                 return session.delete
-            case "PUT":
+            case HTTPMethod.PUT:
                 return session.put
-            case "PATCH":
+            case HTTPMethod.PATCH:
                 return session.patch
+
+        raise ValueError(f"Unsupported verb {verb}")
 
     async def _send(
         self,
-        verb: Verb,
+        verb: HTTPMethod,
         url: str,
         json: Any | None = None,
         data: Any | None = None,
@@ -59,9 +58,7 @@ class IDPClientService:
             request_id_header = {"X-Request-Id": format(trace_id, "x")}
             headers = {**headers, **request_id_header} if headers else request_id_header
 
-            async with aiohttp.ClientSession(
-                timeout=self._timeout, headers=headers
-            ) as session:
+            async with aiohttp.ClientSession(timeout=self._timeout, headers=headers) as session:
                 func = IDPClientService._get_func_by_verb(verb, session)
                 async with func(url, json=json, data=data) as response:
                     return await self._handle_failed_response(response)

@@ -3,9 +3,9 @@ import hashlib
 import json
 import urllib.parse
 from functools import lru_cache
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from secrets import randbelow, token_urlsafe
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 import aiohttp
 import models
@@ -17,9 +17,6 @@ from redis.asyncio import Redis
 
 # https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
 CODE_LENGTH = (43, 128)
-
-Verb = Literal["POST", "GET", "DELETE", "PUT", "PATCH"]
-
 
 class VKClient:
     def __init__(self, settings: VKSettings, redis: Redis):
@@ -66,7 +63,7 @@ class VKClient:
             "state": token_urlsafe(16),
         }
         url = "https://id.vk.com/oauth2/auth"
-        data = await self._send("POST", url, data=params)
+        data = await self._send(HTTPMethod.POST, url, data=params)
         return models.VKTokenModel.model_validate(data)
 
     def _get_code_pair(self) -> tuple[str, str]:
@@ -79,20 +76,22 @@ class VKClient:
         return code_verifier, str(code_challenge)
 
     @staticmethod
-    def _get_func_by_verb(verb: Verb, session: aiohttp.ClientSession) -> Callable:
+    def _get_func_by_verb(verb: HTTPMethod, session: aiohttp.ClientSession) -> Callable:
         match verb:
-            case "GET":
+            case HTTPMethod.GET:
                 return session.get
-            case "POST":
+            case HTTPMethod.POST:
                 return session.post
-            case "DELETE":
+            case HTTPMethod.DELETE:
                 return session.delete
-            case "PUT":
+            case HTTPMethod.PUT:
                 return session.put
-            case "PATCH":
+            case HTTPMethod.PATCH:
                 return session.patch
 
-    async def _send(self, verb: Verb, url: str, json: Any | None = None, data: Any | None = None) -> Any:
+        raise ValueError(f"Unsupported verb {verb}")
+
+    async def _send(self, verb: HTTPMethod, url: str, json: Any | None = None, data: Any | None = None) -> Any:
         async with aiohttp.ClientSession(timeout=self._timeout) as session:
             func = VKClient._get_func_by_verb(verb, session)
             async with func(url, json=json, data=data) as response:
