@@ -23,7 +23,7 @@ spec:
               value: "false"
           ports:
             - containerPort: 9200
-              name: elasticsearch-cli
+              name: es-cli
           volumeMounts:
             - mountPath: "/usr/share/elasticsearch/data"
               name: elasticsearch-pvc
