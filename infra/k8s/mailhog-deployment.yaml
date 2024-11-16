@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailhog-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mailhog-app
+    spec:
+      containers:
+        - name: mailhog-container
+          image: mailhog/mailhog
+          # переменные окружения будем передавать в контейнер из секрета api-prod-env, который создадим далее
+          envFrom:
+            - secretRef:
+                name: api-prod-env
+          # Так мы указываем minikube использовать ранее собранные
+          # нами локально образы без попытки скачать их из реестра образов
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8025
+            - containerPort: 1025
+  selector:
+    matchLabels:
+      app: mailhog-app

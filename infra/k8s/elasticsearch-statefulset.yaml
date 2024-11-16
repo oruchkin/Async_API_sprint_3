@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch-statefulset
+spec:
+  serviceName: elasticsearch-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch-app
+    spec:
+      containers:
+        - name: elasticsearch-container
+          image: elasticsearch:8.6.2
+          envFrom:
+            - secretRef:
+                name: api-prod-env
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: xpack.security.enabled
+              value: "false"
+          ports:
+            - containerPort: 9200
+              name: elasticsearch-cli
+          volumeMounts:
+            - mountPath: "/usr/share/elasticsearch/data"
+              name: elasticsearch-pvc
+
+  selector:
+    matchLabels:
+      app: elasticsearch-app
+  volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Mi
