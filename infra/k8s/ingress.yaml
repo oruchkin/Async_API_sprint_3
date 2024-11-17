@@ -47,3 +47,13 @@ spec:
                 name: admin-service
                 port:
                   number: 80
+    - host: fileapi.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fileapi-service
+                port:
+                  number: 8000

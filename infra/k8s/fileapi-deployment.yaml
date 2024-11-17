@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fileapi-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fileapi-app
+    spec:
+      containers:
+        - name: fileapi-container
+          image: k8s-fileapi:latest
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env        
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+  selector:
+    matchLabels:
+      app: fileapi-app

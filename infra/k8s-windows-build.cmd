@@ -16,3 +16,5 @@ docker build -t k8s-idp ../idp
 docker build -t k8s-pginit ../postgres_init
 
 docker build -t k8s-etl ../etl
+
+docker build -t k8s-fileapi ../file_service

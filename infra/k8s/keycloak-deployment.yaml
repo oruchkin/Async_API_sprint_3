@@ -20,12 +20,12 @@ spec:
           env:
           - name: POSTGRES_HOST
             valueFrom:
-              configMapRef:
+              configMapKeyRef:
                 name: api-configs
                 key: POSTGRES_HOST
           - name: POSTGRES_PORT
             valueFrom:
-              configMapRef:
+              configMapKeyRef:
                 name: api-configs
                 key: POSTGRES_PORT
           - name: POSTGRES_USER

@@ -56,7 +56,7 @@ kubectl port-forward pod/postgres-statefulset-0 5432:5432
 [ ] api
 [ ] api-nginx
 [x] minio
-[ ] fileapi
+[x] fileapi -> k8s-fileapi
 [ ] idp-nginx
 [x] idp -> k8s-idp
 [x] keycloak -> k8s-keycloak
