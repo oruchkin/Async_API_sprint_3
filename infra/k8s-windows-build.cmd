@@ -20,3 +20,5 @@ docker build -t k8s-etl ../etl
 docker build -t k8s-fileapi ../file_service
 
 docker build -t k8s-api ../api
+
+docker build -t k8s-notifications ../notifications
