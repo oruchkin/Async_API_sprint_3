@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import psycopg2
 from dataclasse import FilmWork, Genre, GenreFilmWork, Person, PersonFilmWork
 from dotenv import load_dotenv
+from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 
 load_dotenv()
@@ -108,15 +109,28 @@ def load_from_sqlite(sqlite_conn, pg_conn, batch_size=1000):
             save_data_to_postgres(pg_conn, table["name"], data, columns)
 
 
+def _ensure_db_exists(database_name: str, dsl: dict[str, str]) -> None:
+    default_dsl = {**dsl, "dbname": "postgres"}
+    with pg_connect(default_dsl) as pg_conn:
+        pg_conn.autocommit = True
+        with pg_conn.cursor() as pg_cursor:
+            pg_cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [database_name])
+            exists = pg_cursor.fetchone() is not None
+            if not exists:
+                pg_cursor.execute(f"CREATE DATABASE {database_name};")
+
+
 def main():
     sqlite_db_path = "db.sqlite"
     dsl = {
-        "dbname": os.environ.get("ADMIN_POSTGRES_DB"),
-        "user": os.environ.get("POSTGRES_USER"),
-        "password": os.environ.get("POSTGRES_PASSWORD"),
-        "host": os.environ.get("POSTGRES_HOST"),
-        "port": os.environ.get("POSTGRES_PORT"),
+        "dbname": os.environ["ADMIN_POSTGRES_DB"],
+        "user": os.environ["POSTGRES_USER"],
+        "password": os.environ["POSTGRES_PASSWORD"],
+        "host": os.environ["POSTGRES_HOST"],
+        "port": os.environ["POSTGRES_PORT"],
     }
+
+    _ensure_db_exists(os.environ["ADMIN_POSTGRES_DB"], dsl)
 
     with sqlite_connect(sqlite_db_path) as sqlite_conn, pg_connect(dsl) as pg_conn:
         load_from_sqlite(sqlite_conn, pg_conn)

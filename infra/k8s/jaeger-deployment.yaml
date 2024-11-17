@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jaeger-app
+    spec:
+      containers:
+        - name: jaeger-container
+          image: jaegertracing/all-in-one:latest
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6831
+              protocol: UDP
+            - containerPort: 16686
+  selector:
+    matchLabels:
+      app: jaeger-app

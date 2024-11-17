@@ -2,6 +2,9 @@
 .idea
 **/.env
 
+# k8s
+infra/**/secrets.yaml
+
 # Python
 *.pyc
 __pycache__/

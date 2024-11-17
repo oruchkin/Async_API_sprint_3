@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: idp-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: idp-app
+    spec:
+      containers:
+        - name: idp-container
+          image: k8s-idp:latest
+          envFrom:
+            - configMapRef:
+              name: api-configs
+            - secretRef:
+              name: api-prod-env
+          env:
+          - name: DEBUG
+            value: "True"         
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+            - containerPort: 50051
+  selector:
+    matchLabels:
+      app: idp-app

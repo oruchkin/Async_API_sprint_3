@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -eux
 
 echo "Ожидание доступности PostgreSQL..."
 until PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\q'; do
@@ -10,7 +9,7 @@ done
 >&2 echo "PostgreSQL доступен. Продолжаем выполнение..."
 
 >&2 echo "Выполнение DDL скрипта..."
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -a -f /app/movies_database.ddl
+PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -a -f /app/movies_database.ddl
 
 >&2 echo "Загрузка данных..."
 
