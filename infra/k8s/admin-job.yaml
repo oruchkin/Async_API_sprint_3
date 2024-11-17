@@ -5,6 +5,7 @@ metadata:
 spec:
   backoffLimit: 2
   activeDeadlineSeconds: 100
+  ttlSecondsAfterFinished: 3600
   template:
     spec:
       containers:
