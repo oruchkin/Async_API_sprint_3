@@ -9,6 +9,8 @@ docker build -t k8s-keycloak ../idp/keycloak
 
 docker build -t k8s-admin ../admin
 
+docker build -t k8s-admin-nginx ../admin -f ../admin/nginx/Dockerfile
+
 docker build -t k8s-idp ../idp
 
 docker build -t k8s-pginit ../postgres_init

@@ -7,4 +7,5 @@ AUTHENTICATION_BACKENDS = [
     # "django.contrib.auth.backends.ModelBackend",
 ]
 
-AUTH_API_LOGIN_URL = f"{os.environ['IDP_URL']}/api/v1"
+# Fails while collectstatic run
+AUTH_API_LOGIN_URL = f"{os.environ['IDP_URL']}/api/v1" if "IDP_URL" in os.environ else None

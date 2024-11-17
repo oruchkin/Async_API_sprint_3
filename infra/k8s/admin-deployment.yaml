@@ -23,6 +23,34 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+        - name: admin-nginx-container
+          image: k8s-admin-nginx:latest
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: admin-nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: admin-nginx-conf
+              mountPath: /etc/nginx/conf.d/configs/admin.conf
+              subPath: admin.conf
+              readOnly: true
+      volumes:
+      - name: admin-nginx-conf
+        configMap:
+          name: admin-nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+            - key: admin.conf
+              path: admin.conf
   selector:
     matchLabels:
       app: admin-app
