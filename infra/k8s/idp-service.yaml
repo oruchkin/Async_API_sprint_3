@@ -8,6 +8,8 @@ spec:
     app: idp-app
   ports:
     - protocol: TCP
-      port: 8000
+      port: 80
+      name: idp-http
     - protocol: TCP
       port: 50051
+      name: idp-grpc

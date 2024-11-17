@@ -15,9 +15,9 @@ spec:
           image: rabbitmq:3-management
           envFrom:
             - configMapRef:
-              name: api-configs
+                name: api-configs
             - secretRef:
-              name: api-prod-env
+                name: api-prod-env
           env:
             - name: RABBITMQ_DEFAULT_USER
               value: user

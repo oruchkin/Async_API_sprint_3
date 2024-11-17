@@ -33,17 +33,17 @@ data:
   # Filmworks API
   FASTAPI_URL: http://fastapi-service.default.svc.cluster.local:8001
   FASTAPI_POSTGRES_QUERY_LOGGING: "False"
-  FASTAPI_SENTRY_DSN: "False"
+  FASTAPI_SENTRY_DSN: ""
   FASTAPI_SENTRY_ENABLED: "False"
 
   # IDP
   # idp-service.default.svc.cluster.local
-  IDP_URL: http://idp-service.default.svc.cluster.local:29543
+  IDP_URL: http://idp-service.default.svc.cluster.local:80
   IDP_GRPC: idp-service.default.svc.cluster.local:50051
-  IDP_KEYCLOAK_URL: http://keycloak-service.default.svc.cluster.local:32547
+  IDP_KEYCLOAK_URL: http://keycloak-service.default.svc.cluster.local:8080
 
   # Files API
-  FILEAPI_URL: http://fileapi-service.default.svc.cluster.local:22738
+  FILEAPI_URL: http://fileapi-service.default.svc.cluster.local:8000
   FILEAPI_POSTGRES_DB: files
 
   # Jaeger

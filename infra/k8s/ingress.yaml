@@ -57,3 +57,23 @@ spec:
                 name: fileapi-service
                 port:
                   number: 8000
+    - host: api.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+    - host: idp.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: idp-service
+                port:
+                  number: 80

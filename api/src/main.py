@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 is_sentry_enabled = bool(os.getenv("FASTAPI_SENTRY_ENABLED"))
-sentry_dsn = sentry_dsn = os.getenv("FASTAPI_SENTRY_DSN")
+sentry_dsn = os.getenv("FASTAPI_SENTRY_DSN")
 if is_sentry_enabled and sentry_dsn:
     sentry_sdk.init(
         dsn=sentry_dsn,
@@ -96,9 +96,7 @@ app.include_router(films_rating.router, prefix="/api/v1/films/rating", tags=["fi
 app.include_router(films_reviews.router, prefix="/api/v1/films/reviews", tags=["films"])
 app.include_router(genres.router, prefix="/api/v1/genres", tags=["genres"])
 app.include_router(persons.router, prefix="/api/v1/persons", tags=["persons"])
-app.include_router(
-    user_bookmarks.router, prefix="/api/v1/user/bookmarks", tags=["user", "bookmarks"]
-)
+app.include_router(user_bookmarks.router, prefix="/api/v1/user/bookmarks", tags=["user", "bookmarks"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 
 if __name__ == "__main__":

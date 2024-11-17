@@ -23,6 +23,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+        
         - name: admin-nginx-container
           image: k8s-admin-nginx:latest
           envFrom:

@@ -1,3 +1,12 @@
+# Hosts
+127.0.0.1 	keycloak.local
+127.0.0.1 	jaeger.local
+127.0.0.1   mailhog.local
+127.0.0.1   admin.local
+127.0.0.1   fileapi.local
+127.0.0.1   api.local
+127.0.0.1   idp.local
+
 # Полезные команды
 
 Старт
@@ -53,11 +62,11 @@ kubectl port-forward pod/postgres-statefulset-0 5432:5432
 [x] elasticsearch
 [x] etl -> k8s-etl
 [x] redis
-[ ] api
-[ ] api-nginx
+[x] api -> k8s-api
+[x] api-nginx
 [x] minio
 [x] fileapi -> k8s-fileapi
-[ ] idp-nginx
+[x] idp-nginx
 [x] idp -> k8s-idp
 [x] keycloak -> k8s-keycloak
 [x] jaeger
