@@ -14,3 +14,5 @@ docker build -t k8s-admin-nginx ../admin -f ../admin/nginx/Dockerfile
 docker build -t k8s-idp ../idp
 
 docker build -t k8s-pginit ../postgres_init
+
+docker build -t k8s-etl ../etl

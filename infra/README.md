@@ -51,7 +51,7 @@ kubectl port-forward pod/postgres-statefulset-0 5432:5432
 [x] admin
 [x] admin-nginx -> k8s-admin-nginx
 [x] elasticsearch
-[ ] etl
+[x] etl -> k8s-etl
 [x] redis
 [ ] api
 [ ] api-nginx

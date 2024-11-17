@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etl-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: etl-app
+    spec:
+      containers:
+        - name: etl-container
+          image: k8s-etl:latest
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env
+          imagePullPolicy: IfNotPresent
+  selector:
+    matchLabels:
+      app: etl-app
