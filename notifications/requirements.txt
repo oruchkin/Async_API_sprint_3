@@ -20,3 +20,4 @@ aio-pika~=9.4.3
 sendgrid~=6.11.0
 croniter~=3.0.3
 websockets~=13.0
+protobuf~=5.28.3
