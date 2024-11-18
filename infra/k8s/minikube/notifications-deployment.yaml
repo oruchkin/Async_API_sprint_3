@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: notifications-app
+    spec:
+      containers:
+        - name: notifications-container
+          image: k8s-notifications:latest
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env        
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: notify-api
+            - containerPort: 8765
+              name: notify-socket
+  selector:
+    matchLabels:
+      app: notifications-app

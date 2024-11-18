@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: idp-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: idp-app
+    spec:
+      containers:
+        - name: idp-container
+          image: k8s-idp:latest
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+            - containerPort: 50051
+        
+        - name: idp-nginx-container
+          image: nginx:1.25-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: idp-nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+      
+      volumes:
+      - name: idp-nginx-conf
+        configMap:
+          name: idp-nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+  selector:
+    matchLabels:
+      app: idp-app

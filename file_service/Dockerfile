@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -9,4 +9,4 @@ COPY src src
 COPY alembic alembic
 COPY alembic.ini alembic.ini
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "22738"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

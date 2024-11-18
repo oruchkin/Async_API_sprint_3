@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: admin-job
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 100
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      containers:
+      - name: admin-job-container
+        image: k8s-admin:latest
+        envFrom:
+          - configMapRef:
+              name: api-configs
+          - secretRef:
+              name: api-prod-env
+        command: ["sh", "-c", "python manage.py migrate"]
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Never

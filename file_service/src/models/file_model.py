@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -19,7 +19,7 @@ class FileDbModel(Base):
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     file_type: Mapped[str] = mapped_column(String(100), nullable=True)
     short_name: Mapped[str] = mapped_column(String(24), nullable=False, unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
     bucket: Mapped[str] = mapped_column(String(255), nullable=False)
 
     def __init__(

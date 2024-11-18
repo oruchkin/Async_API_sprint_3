@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-configs
+data:
+  DEBUG_MODE: "False"
+
+  # Admin
+  ADMIN_S3_BUCKET: filmworks
+  ADMIN_POSTGRES_DB: movies_database
+
+  # PostgreSQL
+  POSTGRES_HOST: postgres-statefulset-0.postgres-service.default.svc.cluster.local
+  POSTGRES_PORT: "5432"
+
+  # mongoDB
+  MONGO_CONNECTION: mongodb://mongo-statefulset-0.mongo-service.default.svc.cluster.local:27017/?retryWrites=true&loadBalanced=false
+
+  # Redis
+  REDIS_HOST: redis-statefulset-0.redis-service.default.svc.cluster.local
+  REDIS_PORT: "6379"
+
+  # Elasticsearch
+  ELASTIC_URL: http://elasticsearch-statefulset-0.elasticsearch-service.default.svc.cluster.local:9200
+  ELASTIC_INDEX_NAME_MOVIES: movies
+  ELASTIC_INDEX_NAME_GENRES: genres
+  ELASTIC_INDEX_NAME_PERSONS: persons
+
+  # ETL
+  INITIAL_DATE: 1970-01-01
+  DELAY: "10"
+
+  # Filmworks API
+  FASTAPI_URL: http://fastapi-service.default.svc.cluster.local:8001
+  FASTAPI_POSTGRES_QUERY_LOGGING: "False"
+  FASTAPI_SENTRY_DSN: ""
+  FASTAPI_SENTRY_ENABLED: "False"
+
+  # IDP
+  # idp-service.default.svc.cluster.local
+  IDP_URL: http://idp-service.default.svc.cluster.local:80
+  IDP_GRPC: idp-service.default.svc.cluster.local:50051
+  IDP_KEYCLOAK_URL: http://keycloak-service.default.svc.cluster.local:8080
+
+  # Files API
+  FILEAPI_URL: http://fileapi-service.default.svc.cluster.local:8000
+  FILEAPI_POSTGRES_DB: files
+
+  # Jaeger
+  JAEGER_HOST: jaeger-service.default.svc.cluster.local
+  JAEGER_PORT: "6831"
+
+  # SMTP
+  SMTP_HOST: smtp.yandex.ru
+  SMTP_PORT: "465"
+
+  # RabbitMQ
+  RABBITMQ_HOST: rabbitmq-statefulset-0.rabbitmq-service.default.svc.cluster.local
+
+  # Sendgrid
+  SENDGRID_ENABLED: "False"
+  SENDGRID_SENDER: ya.practicum@yandex.ru
+
+  # MailHog
+  MAILHOG_ENABLED: "True"
+  MAILHOG_HOST: mailhog-service.default.svc.cluster.local
+  MAILHOG_PORT: "1025"
+  MAILHOG_SENDER: ya.practicum@yandex.ru

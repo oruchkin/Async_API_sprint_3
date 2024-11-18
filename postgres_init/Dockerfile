@@ -13,4 +13,4 @@ RUN ls -la
 COPY . .
 RUN chmod +x init_db.sh
 
-ENTRYPOINT ["sh", "/app/init_db.sh"]
+ENTRYPOINT ["python", "/app/load_data.py"]

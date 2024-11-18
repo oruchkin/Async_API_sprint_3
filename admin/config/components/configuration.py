@@ -4,7 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = os.environ.get("DEBUG", False) == "True"
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "*"]
+ALLOWED_HOSTS = ["127.0.0.1", "admin.local", "localhost", "*"]
 
 LANGUAGE_CODE = "ru-RU"
 TIME_ZONE = "UTC"

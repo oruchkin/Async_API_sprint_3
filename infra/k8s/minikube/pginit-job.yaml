@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pginit-job
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 100
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      containers:
+      - name: pginit-container
+        image: k8s-pginit:latest
+        envFrom:
+          - configMapRef:
+              name: api-configs
+          - secretRef:
+              name: api-prod-env
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Never
