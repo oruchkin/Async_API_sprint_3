@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
+from prometheus_fastapi_instrumentator import Instrumentator
 from src.api.v1 import (
     films,
     films_rating,
@@ -54,6 +55,7 @@ app = FastAPI(
     log_config=LOGGING,
     log_level=logging.DEBUG,
 )
+Instrumentator().instrument(app).expose(app)
 
 
 @app.middleware("http")
@@ -68,7 +70,7 @@ async def add_trace_id(request: Request, call_next):
         response.headers["X-Request-Id"] = request_id or "NA"
         return response
     else:
-        logger.warn("Trace not capturing, check middleware sequence")
+        logger.warning("Trace not capturing, check middleware sequence")
         return await call_next(request)
 
 
