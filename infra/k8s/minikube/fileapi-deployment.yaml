@@ -8,6 +8,10 @@ spec:
     metadata:
       labels:
         app: fileapi-app
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "80"
+        prometheus.io/scrape: "true" 
     spec:
       containers:
         - name: fileapi-container
