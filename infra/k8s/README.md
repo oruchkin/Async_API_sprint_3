@@ -52,7 +52,20 @@ Expose port
 kubectl port-forward pod/postgres-statefulset-0 5432:5432
 ```
 
-
+## Find service url
+1. Connect to any pod:
+```
+kubectl exec -it podName -n namespace -- /bin/sh
+```
+Install util:
+```
+apt-get update && apt-get install dnsutils
+```
+Resolve ip-address (check service in kubectl get all):
+```
+nslookup ip-address
+```
+prometheus-service.default.svc.cluster.local
 
 # TODO:
 [x] postgres
