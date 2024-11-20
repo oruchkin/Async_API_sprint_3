@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: api-container
-          image: k8s-api:latest
+          image: oruchkin/k8s-api:latest
           envFrom:
             - configMapRef:
                 name: api-configs

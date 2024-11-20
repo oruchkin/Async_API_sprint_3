@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: fileapi-container
-          image: k8s-fileapi:latest
+          image: oruchkin/k8s-fileapi:latest
           envFrom:
             - configMapRef:
                 name: api-configs

@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: notifications-container
-          image: k8s-notifications:latest
+          image: oruchkin/k8s-notifications:latest
           envFrom:
             - configMapRef:
                 name: api-configs

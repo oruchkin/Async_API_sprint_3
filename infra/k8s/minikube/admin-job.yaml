@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: admin-job-container
-        image: k8s-admin:latest
+        image: oruchkin/k8s-admin:latest
         envFrom:
           - configMapRef:
               name: api-configs
