@@ -21,6 +21,7 @@ from src.api.v1 import (
 )
 from src.core.lifecycle import lifespan
 from src.core.logger import LOGGING
+from src.core.prometheus_metrics import http_requested_languages_total
 from src.core.tracer import configure_tracer
 
 load_dotenv()
@@ -55,7 +56,10 @@ app = FastAPI(
     log_config=LOGGING,
     log_level=logging.DEBUG,
 )
-Instrumentator().instrument(app).expose(app)
+
+instrumentator = Instrumentator()
+instrumentator.add(http_requested_languages_total())
+instrumentator.instrument(app).expose(app)
 
 
 @app.middleware("http")

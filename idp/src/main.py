@@ -6,7 +6,7 @@ import string
 import uvicorn
 from core.auth import BasicAuthBackend
 from core.errors_utils import error_to_json_response
-from core.grpc import serve, start_grpc
+from core.grpc import start_grpc
 from core.lifecycle import lifespan
 from core.logger import LOGGING
 from core.tracer import configure_tracer
