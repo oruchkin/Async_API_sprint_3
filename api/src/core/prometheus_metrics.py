@@ -16,7 +16,7 @@ def http_requested_languages_total() -> Callable[[Info], None]:
 
     def instrumentation(info: Info) -> None:
         langs = set()
-        lang_str = info.request.headers["Accept-Language"]
+        lang_str = info.request.headers.get("Accept-Language") or ""
         for element in lang_str.split(","):
             element = element.split(";")[0].strip().lower()
             langs.add(element)
