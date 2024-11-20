@@ -57,9 +57,9 @@ app = FastAPI(
     log_level=logging.DEBUG,
 )
 
-instrumentator = Instrumentator()
+instrumentator = Instrumentator().instrument(app)
 instrumentator.add(http_requested_languages_total())
-instrumentator.instrument(app).expose(app)
+instrumentator.expose(app)
 
 
 @app.middleware("http")
