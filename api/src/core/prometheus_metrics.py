@@ -24,3 +24,10 @@ def http_requested_languages_total() -> Callable[[Info], None]:
             METRIC.labels(language).inc()
 
     return instrumentation
+
+
+movies_watch_amount = Counter(
+    "movies_watch_amount",
+    "Number of times a certain movie type has been watched.",
+    labelnames=("type",),
+)
