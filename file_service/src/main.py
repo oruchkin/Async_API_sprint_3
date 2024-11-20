@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from src.api.file_endpoints import router as file_router
 
 app = FastAPI(
@@ -9,6 +10,7 @@ app = FastAPI(
     docs_url="/api/openapi",
     openapi_url="/api/openapi.json",
 )
+Instrumentator().instrument(app).expose(app)
 
 app.include_router(file_router, prefix="/api/v1/files")
 

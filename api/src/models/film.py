@@ -8,6 +8,11 @@ class PersonId(BaseOrjsonModel):
     name: str
 
 
+class Entity(BaseOrjsonModel):
+    id: UUID
+    name: str
+
+
 class Film(BaseOrjsonModel):
     id: UUID
     title: str
@@ -17,3 +22,4 @@ class Film(BaseOrjsonModel):
     directors: list[PersonId]
     actors: list[PersonId]
     writers: list[PersonId]
+    genres: list[Entity]

@@ -77,3 +77,13 @@ spec:
                 name: idp-service
                 port:
                   number: 80
+    - host: prometheus.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-service
+                port:
+                  number: 80

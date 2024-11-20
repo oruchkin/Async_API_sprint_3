@@ -6,7 +6,7 @@ import string
 import uvicorn
 from core.auth import BasicAuthBackend
 from core.errors_utils import error_to_json_response
-from core.grpc import serve, start_grpc
+from core.grpc import start_grpc
 from core.lifecycle import lifespan
 from core.logger import LOGGING
 from core.tracer import configure_tracer
@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 from opentelemetry import trace
+from prometheus_fastapi_instrumentator import Instrumentator
 from services.throttling_service import ThrottlingService
 from starlette.middleware.authentication import AuthenticationMiddleware
 
@@ -36,6 +37,7 @@ app = FastAPI(
     log_config=LOGGING,
     log_level=logging.DEBUG,
 )
+Instrumentator().instrument(app).expose(app)
 
 
 @app.middleware("http")
@@ -69,7 +71,7 @@ async def add_trace_id(request: Request, call_next):
         response.headers["X-Request-Id"] = request_id or "NA"
         return response
     else:
-        logger.warn("Trace not capturing, check middleware sequence")
+        logger.warning("Trace not capturing, check middleware sequence")
         return await call_next(request)
 
 

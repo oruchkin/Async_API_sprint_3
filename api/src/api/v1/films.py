@@ -8,6 +8,7 @@ from src.api.v1.schemas.film import Film
 from src.api.v1.schemas.film_detailed import FilmDetailed
 from src.api.v1.schemas.pagination import PaginatedParams
 from src.core.auth import TokenData, get_current_user
+from src.core.prometheus_metrics import movies_watch_amount
 from src.core.settings import DjangoSettings, FileapiSettings
 from src.db.redis import get_cache
 from src.services.cache.storage import ICache
@@ -107,6 +108,8 @@ async def film_details(
     if film := await film_service.get_by_id(film_id):
         model = FilmDetailed.model_validate(film)
         await _populate_rating([model], user_pref, user_id)
+        for genre in film.genres:
+            movies_watch_amount.labels(type=genre.name).inc()
 
         if model.file:
             fileapi = FileapiSettings()
