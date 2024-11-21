@@ -30,7 +30,9 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/bash","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD psql $ADMIN_POSTGRES_DB -U $POSTGRES_USER -c \'CREATE SCHEMA IF NOT EXISTS content;\'"]
+                command: ["/bin/bash", "-c", "sleep 20 && \
+                PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE \\\"$ADMIN_POSTGRES_DB\\\" OWNER \\\"$POSTGRES_USER\\\";\" && \
+                PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d $ADMIN_POSTGRES_DB -c \"CREATE SCHEMA IF NOT EXISTS content;\""]
 
   selector:
     matchLabels:

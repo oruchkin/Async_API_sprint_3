@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: admin-container
-          image: k8s-admin:latest
+          image: oruchkin/k8s-admin:latest
           envFrom:
             - configMapRef:
                 name: api-configs
@@ -25,7 +25,7 @@ spec:
             - containerPort: 8000
         
         - name: admin-nginx-container
-          image: k8s-admin-nginx:latest
+          image: oruchkin/k8s-admin-nginx:latest
           envFrom:
             - configMapRef:
                 name: api-configs
