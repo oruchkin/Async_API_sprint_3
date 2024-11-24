@@ -30,11 +30,18 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/bash", "-c", "sleep 20 && \
-                PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE \\\"$ADMIN_POSTGRES_DB\\\" OWNER \\\"$POSTGRES_USER\\\";\" && \
-                PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d $ADMIN_POSTGRES_DB -c \"CREATE SCHEMA IF NOT EXISTS content;\" && \
-                PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE \\\"keycloak\\\" OWNER \\\"$POSTGRES_USER\\\";\""]
-
+                command: ["/bin/bash","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD \
+                psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE $ADMIN_POSTGRES_DB OWNER $POSTGRES_USER;\" 2> /dev/null || echo \"database already exists\" && \
+                psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE keycloak OWNER $POSTGRES_USER;\" 2> /dev/null || echo \"database already exists\" && \
+                psql -U $POSTGRES_USER -d $ADMIN_POSTGRES_DB -c \"CREATE SCHEMA IF NOT EXISTS content;\" 2> /dev/null || echo \"schema already exists\""]
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - exec pg_isready -U $POSTGRES_USER -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 10
+            periodSeconds: 5
   selector:
     matchLabels:
       app: postgres-app

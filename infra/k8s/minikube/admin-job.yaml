@@ -18,4 +18,8 @@ spec:
               name: api-prod-env
         command: ["sh", "-c", "python manage.py makemigrations && python manage.py migrate"]
         imagePullPolicy: IfNotPresent
+      initContainers:
+      - name: admin-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
       restartPolicy: Never
