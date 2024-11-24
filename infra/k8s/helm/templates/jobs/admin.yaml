@@ -3,14 +3,14 @@ kind: Job
 metadata:
   name: admin-job
 spec:
-  backoffLimit: 2
-  activeDeadlineSeconds: 100
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
   ttlSecondsAfterFinished: 3600
   template:
     spec:
       containers:
       - name: admin-job-container
-        image: k8s-admin:latest
+        image: {{ .Values.imagesStorage }}k8s-admin:latest
         envFrom:
           - configMapRef:
               name: api-configs

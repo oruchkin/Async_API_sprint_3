@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fileapi-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.imagesStorage }}fileapi-app
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8000"
+        prometheus.io/scrape: "true" 
+    spec:
+      containers:
+        - name: fileapi-container
+          image: {{ .Values.imagesStorage }}k8s-fileapi:latest
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}      
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+  selector:
+    matchLabels:
+      app: fileapi-app

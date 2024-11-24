@@ -7,19 +7,23 @@
 127.0.0.1   api.local
 127.0.0.1   idp.local
 
-# Полезные команды
+# Minikube
 
-Старт
+## Start
 ```bash
 minikube start
 ```
 
-Удалить все целиком
+## Remove everything
+```bash
+kubectl delete all --all
+```
+or more aggressive including docker images
 ```bash
 minikube delete
 ```
 
-Включить ingress
+## Enable ingress
 ```bash
 minikube addons enable ingress 
 ```
@@ -35,6 +39,7 @@ minikube docker-env
 ```
 и внимательно читаем, что там написано!
 
+# Kubectl
 
 Посмотреть, что сейчас запущено
 ```bash
@@ -42,7 +47,7 @@ kubectl get all
 ```
 
 If any errors use
-```
+```bash
 kubectl descript pod {podname}
 ```
 to see all the details and errors
@@ -52,21 +57,42 @@ Expose port
 kubectl port-forward pod/postgres-statefulset-0 5432:5432
 ```
 
+## Restart pod
+```bash
+kubectl delete pod <pod_name>
+```
+
 ## Find service url
 1. Connect to any pod:
-```
+```bash
 kubectl exec -it podName -n namespace -- /bin/sh
 ```
 Install util:
-```
+```bash
 apt-get update && apt-get install dnsutils
 ```
 Resolve ip-address (check service in kubectl get all):
-```
+```bash
 nslookup ip-address
 ```
 
-Useful Grafana metrics:
+# Helm
+## Export results
+```bash
+helm template . > compiled.yaml
+```
+
+## Install chart
+```bash
+helm install movies .
+```
+and to update it
+```bash
+helm upgrade movies .
+```
+
+
+# Grafana metrics:
 1. Service Uptime
     Chart Type: Single Stat or Gauge
     Query: avg_over_time(up{job="your_service"}[1h]) * 100
