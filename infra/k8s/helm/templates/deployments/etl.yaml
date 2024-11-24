@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etl-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: etl-app
+    spec:
+      containers:
+        - name: etl-container
+          image: {{ .Values.imagesStorage }}k8s-etl:latest
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}
+          imagePullPolicy: IfNotPresent
+      initContainers:
+      - name: etl-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
+  selector:
+    matchLabels:
+      app: etl-app

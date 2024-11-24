@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: admin-job
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      containers:
+      - name: admin-job-container
+        image: {{ .Values.imagesStorage }}k8s-admin:latest
+        envFrom:
+          - configMapRef:
+              name: api-configs
+          - secretRef:
+              name: api-prod-env
+        command: ["sh", "-c", "python manage.py migrate"]
+        imagePullPolicy: IfNotPresent
+      initContainers:
+      - name: admin-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
+      restartPolicy: Never

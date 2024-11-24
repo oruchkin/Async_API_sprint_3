@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pginit-job
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      containers:
+      - name: pginit-container
+        image: {{ .Values.imagesStorage }}k8s-pginit:latest
+        envFrom:
+          - configMapRef:
+              name: api-configs
+          - secretRef:
+              name: api-prod-env
+        imagePullPolicy: IfNotPresent
+      initContainers:
+      - name: pginit-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
+      restartPolicy: Never
