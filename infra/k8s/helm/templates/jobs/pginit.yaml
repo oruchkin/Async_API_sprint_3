@@ -12,10 +12,7 @@ spec:
       - name: pginit-container
         image: {{ .Values.imagesStorage }}k8s-pginit:latest
         envFrom:
-          - configMapRef:
-              name: api-configs
-          - secretRef:
-              name: api-prod-env
+{{ toYaml .Values.envFrom | indent 10 }}
         imagePullPolicy: IfNotPresent
       initContainers:
       - name: pginit-postgres

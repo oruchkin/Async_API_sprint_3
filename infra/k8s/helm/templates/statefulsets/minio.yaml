@@ -14,10 +14,7 @@ spec:
         - name: minio-container
           image: minio/minio
           envFrom:
-            - configMapRef:
-                name: api-configs
-            - secretRef:
-                name: api-prod-env
+{{ toYaml .Values.envFrom | indent 12 }}
           ports:
             - containerPort: 9000
               name: minio

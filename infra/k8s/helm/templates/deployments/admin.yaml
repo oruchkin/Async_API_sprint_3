@@ -13,7 +13,7 @@ spec:
         - name: admin-container
           image: {{ .Values.imagesStorage }}k8s-admin:latest
           envFrom:
-{{ toYaml .Values.envFrom | indent 12 }}  
+{{ toYaml .Values.envFrom | indent 12 }}
           env:
           - name: DEBUG
             value: "True"         

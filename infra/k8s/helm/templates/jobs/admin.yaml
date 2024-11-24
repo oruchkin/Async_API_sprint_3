@@ -12,10 +12,7 @@ spec:
       - name: admin-job-container
         image: {{ .Values.imagesStorage }}k8s-admin:latest
         envFrom:
-          - configMapRef:
-              name: api-configs
-          - secretRef:
-              name: api-prod-env
+{{ toYaml .Values.envFrom | indent 10 }}
         command: ["sh", "-c", "python manage.py migrate"]
         imagePullPolicy: IfNotPresent
       initContainers:
