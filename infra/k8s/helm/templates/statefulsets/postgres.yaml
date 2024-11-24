@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-statefulset
+spec:
+  serviceName: postgres-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-app
+    spec:
+      containers:
+        - name: postgres-container
+          image: postgres:16
+          envFrom:
+            - configMapRef:
+                name: api-configs
+            - secretRef:
+                name: api-prod-env
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              name: postgres-cli
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data/"
+              name: postgres-pvc
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/bash","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD \
+                psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE $ADMIN_POSTGRES_DB OWNER $POSTGRES_USER;\" 2> /dev/null || echo \"database already exists\" && \
+                psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE keycloak OWNER $POSTGRES_USER;\" 2> /dev/null || echo \"database already exists\" && \
+                psql -U $POSTGRES_USER -d $ADMIN_POSTGRES_DB -c \"CREATE SCHEMA IF NOT EXISTS content;\" 2> /dev/null || echo \"schema already exists\""]
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - exec pg_isready -U $POSTGRES_USER -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 10
+            periodSeconds: 5
+  selector:
+    matchLabels:
+      app: postgres-app
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Mi

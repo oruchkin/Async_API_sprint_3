@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana-app
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8000"
+        prometheus.io/scrape: "true" 
+    spec:
+      containers:
+        - name: grafana-container
+          image: grafana/grafana-enterprise
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+
+  selector:
+    matchLabels:
+      app: grafana-app

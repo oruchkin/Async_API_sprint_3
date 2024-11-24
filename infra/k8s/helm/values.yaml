@@ -1,0 +1,16 @@
+
+# Prefix for images storage. Keep empty for local build
+# E.g. username/ to set it as dockerhub storage
+imagesStorage: ""
+
+envFrom:
+  - configMapRef:
+      name: api-configs
+  - secretRef:
+      name: api-prod-env
+
+# Django admin service settings
+admin:
+  port: 80
+  name: admin-app
+  debug: true

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: keycloak-app
+    spec:
+      containers:
+        - name: keycloak-container
+          image: {{ .Values.imagesStorage }}k8s-keycloak:latest
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}
+          env:
+          - name: POSTGRES_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: api-configs
+                key: POSTGRES_HOST
+          - name: POSTGRES_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: api-configs
+                key: POSTGRES_PORT
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: api-prod-env
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: api-prod-env
+                key: POSTGRES_PASSWORD
+          - name: KC_DB_URL
+            value: "jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/keycloak"
+          - name: KEYCLOAK_ADMIN
+            value: admin
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            value: admin
+          - name: KC_DB_USERNAME
+            value: "$(POSTGRES_USER)"
+          - name: KC_DB_PASSWORD
+            value: "$(POSTGRES_PASSWORD)"
+          
+          # Так мы указываем minikube использовать ранее собранные
+          # нами локально образы без попытки скачать их из реестра образов
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+      initContainers:
+      - name: keycloak-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
+  selector:
+    matchLabels:
+      app: keycloak-app
