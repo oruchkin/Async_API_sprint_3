@@ -7,5 +7,5 @@ COPY . .
 RUN python ./manage.py collectstatic --noinput
 
 
-FROM nginx:1.25-alpine as nginx
+FROM nginx:1.25-alpine AS nginx
 COPY --from=builder /app/static /data/static
