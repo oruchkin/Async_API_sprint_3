@@ -15,9 +15,9 @@ spec:
           image: redis
           envFrom:
             - configMapRef:
-              name: api-configs
+                name: api-configs
             - secretRef:
-              name: api-prod-env
+                name: api-prod-env
           ports:
             - containerPort: 6379
               name: redis-cli

@@ -54,6 +54,10 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+      initContainers:
+      - name: keycloak-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
   selector:
     matchLabels:
       app: keycloak-app
