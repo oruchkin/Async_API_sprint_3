@@ -81,7 +81,7 @@ Useful Grafana metrics:
 Алерты:
 
 - Зарегестрированые алерты ![Alerts](readme/alerts.png)
-- телеграм / email ![Alerts](readme/notifications.png)
+- телеграм / email ![notification](readme/notifications.png)
 
 ---
 Prometheus:
@@ -93,5 +93,5 @@ Prometheus:
 ---
 Сервисы в yandex.cloud
 
-- телеграм / email ![Alerts](readme/services.png)
+- сервисы залитые в managed service K8S: ![services](readme/services.png)
 
