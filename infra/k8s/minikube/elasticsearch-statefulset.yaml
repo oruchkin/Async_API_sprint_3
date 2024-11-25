@@ -10,6 +10,8 @@ spec:
       labels:
         app: elasticsearch-app
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: elasticsearch-container
           image: elasticsearch:8.6.2
@@ -26,9 +28,19 @@ spec:
           ports:
             - containerPort: 9200
               name: es-cli
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           volumeMounts:
             - mountPath: "/usr/share/elasticsearch/data"
               name: elasticsearch-pvc
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
 
   selector:
     matchLabels:
@@ -41,4 +53,4 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 100Mi
+            storage: 1024Mi

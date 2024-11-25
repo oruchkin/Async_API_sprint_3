@@ -10,12 +10,12 @@ spec:
     spec:
       containers:
       - name: admin-job-container
-        image: k8s-admin:latest
+        image: oruchkin/k8s-admin:latest
         envFrom:
           - configMapRef:
               name: api-configs
           - secretRef:
               name: api-prod-env
-        command: ["sh", "-c", "python manage.py migrate"]
+        command: ["sh", "-c", "python manage.py makemigrations && python manage.py migrate"]
         imagePullPolicy: IfNotPresent
       restartPolicy: Never
