@@ -15,9 +15,9 @@ spec:
           image: redis
           envFrom:
             - configMapRef:
-              name: api-configs
+                name: api-configs
             - secretRef:
-              name: api-prod-env
+                name: api-prod-env
           ports:
             - containerPort: 6379
               name: redis-cli
@@ -25,7 +25,6 @@ spec:
             - mountPath: "/data"
               name: redis-pvc
           command: ["redis-server", "--save", "20", "1", "--loglevel", "warning"]
-
   selector:
     matchLabels:
       app: redis-app
