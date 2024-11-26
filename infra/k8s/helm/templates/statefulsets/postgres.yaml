@@ -14,10 +14,7 @@ spec:
         - name: postgres-container
           image: postgres:16
           envFrom:
-            - configMapRef:
-                name: api-configs
-            - secretRef:
-                name: api-prod-env
+{{ toYaml .Values.envFrom | indent 12 }}
           env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
@@ -26,7 +23,7 @@ spec:
               name: postgres-cli
           volumeMounts:
             - mountPath: "/var/lib/postgresql/data/"
-              name: postgres-pvc
+              name: postgres-volume
           lifecycle:
             postStart:
               exec:
@@ -42,15 +39,10 @@ spec:
               - exec pg_isready -U $POSTGRES_USER -h 127.0.0.1 -p 5432
             initialDelaySeconds: 10
             periodSeconds: 5
+      volumes:
+        - name: postgres-volume
+          persistentVolumeClaim:
+            claimName: postgres-pvc
   selector:
     matchLabels:
       app: postgres-app
-  volumeClaimTemplates:
-    - metadata:
-        name: postgres-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 500Mi

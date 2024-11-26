@@ -1,25 +1,21 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: admin-job
+  name: pginit-job
 spec:
-  backoffLimit: 2
-  activeDeadlineSeconds: 100
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
   ttlSecondsAfterFinished: 3600
   template:
     spec:
       containers:
-      - name: admin-job-container
-        image: oruchkin/k8s-admin:latest
+      - name: pginit-container
+        image: {{ .Values.imagesStorage }}k8s-pginit:latest
         envFrom:
-          - configMapRef:
-              name: api-configs
-          - secretRef:
-              name: api-prod-env
-        command: ["sh", "-c", "python manage.py makemigrations && python manage.py migrate"]
+{{ toYaml .Values.envFrom | indent 10 }}
         imagePullPolicy: IfNotPresent
       initContainers:
-      - name: admin-postgres
+      - name: pginit-postgres
         image: busybox:1.28
         command: ['sh', '-c', "until nslookup postgres-statefulset-0.postgres-service.default.svc.cluster.local; do echo waiting for postgresql; sleep 10; done"]
       restartPolicy: Never

@@ -11,12 +11,9 @@ spec:
     spec:
       containers:
         - name: keycloak-container
-          image: oruchkin/k8s-keycloak:latest
+          image: {{ .Values.imagesStorage }}k8s-keycloak:latest
           envFrom:
-            - configMapRef:
-                name: api-configs
-            - secretRef:
-                name: api-prod-env
+{{ toYaml .Values.envFrom | indent 12 }}
           env:
           - name: POSTGRES_HOST
             valueFrom:

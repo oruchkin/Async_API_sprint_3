@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq-statefulset
+spec:
+  serviceName: rabbitmq-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-app
+    spec:
+      containers:
+        - name: rabbitmq-container
+          image: rabbitmq:3-management
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: user
+            - name: RABBITMQ_DEFAULT_PASS
+              value: password
+          ports:
+            - containerPort: 15672
+              name: rabbit-ui
+            - containerPort: 5672
+              name: rabbitmq
+          volumeMounts:
+            - mountPath: "/var/log/rabbitmq"
+              name: rabbitmq-logs-volume
+            - mountPath: "/var/lib/rabbitmq"
+              name: rabbitmq-libs-volume
+      volumes:
+        - name: rabbitmq-logs-volume
+          persistentVolumeClaim:
+            claimName: rabbitmq-logs-pvc
+        - name: rabbitmq-libs-volume
+          persistentVolumeClaim:
+            claimName: rabbitmq-libs-pvc
+
+  selector:
+    matchLabels:
+      app: rabbitmq-app

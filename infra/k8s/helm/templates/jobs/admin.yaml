@@ -3,20 +3,17 @@ kind: Job
 metadata:
   name: admin-job
 spec:
-  backoffLimit: 2
-  activeDeadlineSeconds: 100
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
   ttlSecondsAfterFinished: 3600
   template:
     spec:
       containers:
       - name: admin-job-container
-        image: oruchkin/k8s-admin:latest
+        image: {{ .Values.imagesStorage }}k8s-admin:latest
         envFrom:
-          - configMapRef:
-              name: api-configs
-          - secretRef:
-              name: api-prod-env
-        command: ["sh", "-c", "python manage.py makemigrations && python manage.py migrate"]
+{{ toYaml .Values.envFrom | indent 10 }}
+        command: ["sh", "-c", "python manage.py migrate"]
         imagePullPolicy: IfNotPresent
       initContainers:
       - name: admin-postgres

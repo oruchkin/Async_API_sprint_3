@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.admin.name }}
+    spec:
+      containers:
+        - name: {{ .Values.admin.name }}
+          image: {{ .Values.imagesStorage }}k8s-admin:latest
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}
+          {{- if .Values.admin.debug }}
+          env:
+          - name: DEBUG
+            value: "True"         
+          {{- end }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+        
+        - name: {{ .Values.admin.name }}-nginx
+          image: {{ .Values.imagesStorage }}k8s-admin-nginx:latest
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}  
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: admin-nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: admin-nginx-conf
+              mountPath: /etc/nginx/conf.d/configs/admin.conf
+              subPath: admin.conf
+              readOnly: true
+      volumes:
+      - name: admin-nginx-conf
+        configMap:
+          name: admin-nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+            - key: admin.conf
+              path: admin.conf
+  selector:
+    matchLabels:
+      app: {{ .Values.admin.name }}

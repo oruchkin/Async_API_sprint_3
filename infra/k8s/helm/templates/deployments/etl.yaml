@@ -11,12 +11,9 @@ spec:
     spec:
       containers:
         - name: etl-container
-          image: oruchkin/k8s-etl:latest
+          image: {{ .Values.imagesStorage }}k8s-etl:latest
           envFrom:
-            - configMapRef:
-                name: api-configs
-            - secretRef:
-                name: api-prod-env
+{{ toYaml .Values.envFrom | indent 12 }}
           imagePullPolicy: IfNotPresent
       initContainers:
       - name: etl-postgres

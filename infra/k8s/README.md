@@ -1,4 +1,4 @@
-## Проектная работа 13 и 14 спринтов
+# Проектная работа 13 и 14 спринтов
 
 В этом спринте наша команда:
 - Описала манифесты для всех сервисов кинотеатра
@@ -8,13 +8,113 @@
 - Настроила алертинг на email / telegram
 
 
-### Доска на которой мы вели задачи:
+## Доска на которой мы вели задачи:
 [Канбан доска](https://github.com/users/oruchkin/projects/15)
 
 ---
 
-Useful Grafana metrics:
+# Hosts
+127.0.0.1 	keycloak.local
+127.0.0.1 	jaeger.local
+127.0.0.1   mailhog.local
+127.0.0.1   admin.local
+127.0.0.1   fileapi.local
+127.0.0.1   api.local
+127.0.0.1   idp.local
 
+# Minikube
+
+## Start
+```bash
+minikube start
+```
+
+## Remove everything
+```bash
+kubectl delete all --all
+```
+or more aggressive including docker images
+```bash
+minikube delete
+```
+
+## Enable ingress
+```bash
+minikube addons enable ingress 
+```
+
+## Tunnel for http access
+Чотбы пробросить роутинг до хостов обязательно сначала запустить туннель
+```bash
+minikube tunnel
+```
+
+## Docker
+Использовать внутрениий docker
+```
+minikube docker-env
+```
+и внимательно читаем, что там написано!
+
+## (Mount path)[https://minikube.sigs.k8s.io/docs/handbook/mount/]
+```bash
+minikube mount C:/path/to/local/data:/mnt/data
+```
+
+# Kubectl
+
+Посмотреть, что сейчас запущено
+```bash
+kubectl get all
+```
+
+If any errors use
+```bash
+kubectl descript pod {podname}
+```
+to see all the details and errors
+
+Expose port
+```bash
+kubectl port-forward pod/postgres-statefulset-0 5432:5432
+```
+
+## Restart pod
+```bash
+kubectl delete pod <pod_name>
+```
+
+## Find service url
+1. Connect to any pod:
+```bash
+kubectl exec -it podName -n namespace -- /bin/sh
+```
+Install util:
+```bash
+apt-get update && apt-get install dnsutils
+```
+Resolve ip-address (check service in kubectl get all):
+```bash
+nslookup ip-address
+```
+
+# Helm
+## Export results
+```bash
+helm template . > compiled.yaml
+```
+
+## Install chart
+```bash
+helm install movies .
+```
+and to update it
+```bash
+helm upgrade movies .
+```
+
+
+# Grafana metrics:
 1. Service Uptime
    Chart Type: Single Stat or Gauge
    Query: avg_over_time(up{job="your_service"}[1h]) * 100
