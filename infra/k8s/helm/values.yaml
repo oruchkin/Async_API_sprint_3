@@ -37,6 +37,7 @@ storage:
 
   local:
     size: 100Mi
+    class: standard
     volumes:
       minio:
         path: /mnt/data/minio

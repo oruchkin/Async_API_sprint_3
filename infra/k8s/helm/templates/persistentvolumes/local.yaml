@@ -13,6 +13,7 @@ metadata:
   labels:
     app: {{ $.Chart.Name }}
 spec:
+  storageClassName: {{ $.Values.storage.local.class }}
   accessModes:
     - {{ $volume.mode | default $claim.mode }}
   capacity:

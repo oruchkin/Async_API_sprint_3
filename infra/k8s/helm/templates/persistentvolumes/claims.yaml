@@ -1,7 +1,5 @@
-{{ $storageSize := .Values.storage.local.size -}}
-{{ if eq .Values.storage.kind "cloud" }}
-  {{ $storageSize = .Values.storage.cloud.size -}}
-{{ end }}
+{{ $def := get .Values.storage .Values.storage.kind }}
+{{ $storageSize := $def.size -}}
 {{ $pods := keys .Values.storage.pods | sortAlpha }}
 {{ range $index, $podName := $pods }}
 ---
@@ -10,11 +8,14 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: {{ $podName }}-pvc
+  labels:
+    app: {{ $.Chart.Name }}
 spec:
   accessModes:
     - {{ $pod.mode }}
   resources:
     requests:
-      storage: {{ $pod.size | default $storageSize }}
+      storage: {{ $pod.size | default $def.size }}
   volumeName: {{ $podName }}-pv 
+  storageClassName: {{ $def.class }}
 {{ end }}
