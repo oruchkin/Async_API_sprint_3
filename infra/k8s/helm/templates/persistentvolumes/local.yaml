@@ -20,5 +20,5 @@ spec:
     storage: {{ $volumeSize | default $storageSize }}
   hostPath:
     path: {{ $volume.path }}
-{{- end }}
-{{- end }}
+{{ end }}
+{{ end }}

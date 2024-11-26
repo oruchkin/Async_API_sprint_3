@@ -59,5 +59,6 @@ storage:
         size: 200Mi
     
   cloud:
-    className: ya-cloud
+    size: 4Gi
+    class: yc-network-hdd
     volumeHandle: blablabla

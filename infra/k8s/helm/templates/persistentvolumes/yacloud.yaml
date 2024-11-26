@@ -1,6 +1,6 @@
-{{- if eq .Values.storage.kind "cloud" }}
-{{- $storageSize := .Values.storage.local.size }}
-{{- range $index, $pod := .Values.storage.pods }}
+{{ if eq .Values.storage.kind "cloud" }}
+{{ $storageSize := .Values.storage.cloud.size }}
+{{ range $index, $pod := .Values.storage.pods }}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -8,13 +8,13 @@ metadata:
   name: movies-pv
 spec:
   capacity:
-    storage: 4Gi
-  storageClassName: "yc-network-hdd"
+    storage: {{ $storageSize }}
+  storageClassName: {{ $.Values.storage.cloud.class }}
   accessModes:
     - ReadWriteOnce
   csi:
     driver: disk-csi-driver.mks.ycloud.io
     fsType: ext4
-    volumeHandle: epdt13t41isrit225vdv
-{{- end }}
-{{- end }}
+    volumeHandle: {{ $.Values.storage.cloud.volumeHandle }}
+{{ end }}
+{{ end }}
