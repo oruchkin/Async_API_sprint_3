@@ -1,0 +1,23 @@
+{{ if eq .Values.storage.kind "local" }}
+{{ $storageSize := .Values.storage.local.size }}
+{{ $volumes := keys .Values.storage.local.volumes }}
+{{ range $index, $volumeName := $volumes }}
+---
+{{ $volume := get $.Values.storage.local.volumes $volumeName }}
+{{ $claim := get $.Values.storage.pods $volumeName | default dict }}
+{{ $volumeSize := $volume.size | default $claim.size }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $volumeName }}-pv
+  labels:
+    app: {{ $.Chart.Name }}
+spec:
+  accessModes:
+    - {{ $volume.mode | default $claim.mode }}
+  capacity:
+    storage: {{ $volumeSize | default $storageSize }}
+  hostPath:
+    path: {{ $volume.path }}
+{{- end }}
+{{- end }}

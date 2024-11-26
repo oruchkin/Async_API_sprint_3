@@ -1,0 +1,20 @@
+{{ $storageSize := .Values.storage.local.size -}}
+{{ if eq .Values.storage.kind "cloud" }}
+  {{ $storageSize = .Values.storage.cloud.size -}}
+{{ end }}
+{{ $pods := keys .Values.storage.pods | sortAlpha }}
+{{ range $index, $podName := $pods }}
+---
+{{ $pod := get $.Values.storage.pods $podName }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ $podName }}-pvc
+spec:
+  accessModes:
+    - {{ $pod.mode }}
+  resources:
+    requests:
+      storage: {{ $pod.size | default $storageSize }}
+  volumeName: {{ $podName }}-pv 
+{{ end }}

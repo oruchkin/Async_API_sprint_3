@@ -18,17 +18,12 @@ spec:
               name: mongo-cli
           volumeMounts:
             - mountPath: "/data/db"
-              name: mongo-pvc
+              name: mongo-volume
+      volumes:
+        - name: mongo-volume
+          persistentVolumeClaim:
+            claimName: mongo-pvc
 
   selector:
     matchLabels:
       app: mongo-app
-  volumeClaimTemplates:
-    - metadata:
-        name: mongo-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi

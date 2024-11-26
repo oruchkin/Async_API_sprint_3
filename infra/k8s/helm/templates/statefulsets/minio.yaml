@@ -22,18 +22,13 @@ spec:
               name: minio-ui
           volumeMounts:
             - mountPath: "/data"
-              name: minio-pvc
+              name: minio-volume
           command: ["minio", "server", "--console-address", ":9001", "/data"]
+      volumes:
+        - name: minio-volume
+          persistentVolumeClaim:
+            claimName: minio-pvc
 
   selector:
     matchLabels:
       app: minio-app
-  volumeClaimTemplates:
-    - metadata:
-        name: minio-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi

@@ -23,7 +23,7 @@ spec:
               name: postgres-cli
           volumeMounts:
             - mountPath: "/var/lib/postgresql/data/"
-              name: postgres-pvc
+              name: postgres-volume
           lifecycle:
             postStart:
               exec:
@@ -39,15 +39,10 @@ spec:
               - exec pg_isready -U $POSTGRES_USER -h 127.0.0.1 -p 5432
             initialDelaySeconds: 10
             periodSeconds: 5
+      volumes:
+        - name: postgres-volume
+          persistentVolumeClaim:
+            claimName: postgres-pvc
   selector:
     matchLabels:
       app: postgres-app
-  volumeClaimTemplates:
-    - metadata:
-        name: postgres-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi

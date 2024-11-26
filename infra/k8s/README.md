@@ -43,16 +43,23 @@ minikube delete
 minikube addons enable ingress 
 ```
 
+## Tunnel for http access
 Чотбы пробросить роутинг до хостов обязательно сначала запустить туннель
 ```bash
 minikube tunnel
 ```
 
+## Docker
 Использовать внутрениий docker
 ```
 minikube docker-env
 ```
 и внимательно читаем, что там написано!
+
+## (Mount path)[https://minikube.sigs.k8s.io/docs/handbook/mount/]
+```bash
+minikube mount C:/path/to/local/data:/mnt/data
+```
 
 # Kubectl
 

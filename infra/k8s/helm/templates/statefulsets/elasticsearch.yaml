@@ -25,17 +25,12 @@ spec:
               name: es-cli
           volumeMounts:
             - mountPath: "/usr/share/elasticsearch/data"
-              name: elasticsearch-pvc
+              name: elasticsearch-volume
+      volumes:
+        - name: elasticsearch-volume
+          persistentVolumeClaim:
+            claimName: elasticsearch-pvc
 
   selector:
     matchLabels:
       app: elasticsearch-app
-  volumeClaimTemplates:
-    - metadata:
-        name: elasticsearch-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi

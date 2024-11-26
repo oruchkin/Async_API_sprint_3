@@ -14,3 +14,49 @@ admin:
   port: 80
   name: admin-app
   debug: true
+
+storage:
+  kind: local  # or cloud
+
+  pods:
+    minio:
+      mode: ReadWriteMany
+    mongo:
+      mode: ReadWriteOnce
+    rabbitmq-logs:
+      mode: ReadWriteOnce
+    rabbitmq-libs:
+      mode: ReadWriteOnce
+    elasticsearch:
+      mode: ReadWriteOnce
+    redis:
+      mode: ReadWriteOnce
+    postgres:
+      mode: ReadWriteOnce
+      size: 100Mi
+
+  local:
+    size: 100Mi
+    volumes:
+      minio:
+        path: /mnt/data/minio
+      mongo:
+        path: /mnt/data/mongo
+      rabbitmq-logs:
+        path: /mnt/data/rabbitmq/logs
+      rabbitmq-libs:
+        path: /mnt/data/rabbitmq/libs
+      elasticsearch:
+        path: /mnt/data/elasticsearch
+      redis:
+        path: /mnt/data/redis
+      postgres:
+        path: /mnt/data/postgres
+      shared-123:
+        path: /mnt/data/shared-123
+        mode: ReadWriteMany
+        size: 200Mi
+    
+  cloud:
+    className: ya-cloud
+    volumeHandle: blablabla

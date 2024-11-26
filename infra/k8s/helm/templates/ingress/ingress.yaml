@@ -44,7 +44,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: admin-service
+                name: {{ .Values.admin.name }}-service
                 port:
                   number: 80
     - host: fileapi.local

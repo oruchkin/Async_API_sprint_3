@@ -7,21 +7,23 @@ spec:
   template:
     metadata:
       labels:
-        app: admin-app
+        app: {{ .Values.admin.name }}
     spec:
       containers:
-        - name: admin-container
+        - name: {{ .Values.admin.name }}
           image: {{ .Values.imagesStorage }}k8s-admin:latest
           envFrom:
 {{ toYaml .Values.envFrom | indent 12 }}
+          {{- if .Values.admin.debug }}
           env:
           - name: DEBUG
             value: "True"         
+          {{- end }}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
         
-        - name: admin-nginx-container
+        - name: {{ .Values.admin.name }}-nginx
           image: {{ .Values.imagesStorage }}k8s-admin-nginx:latest
           envFrom:
 {{ toYaml .Values.envFrom | indent 12 }}  
@@ -48,4 +50,4 @@ spec:
               path: admin.conf
   selector:
     matchLabels:
-      app: admin-app
+      app: {{ .Values.admin.name }}

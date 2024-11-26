@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin-service
+  name: {{ .Values.admin.name }}-service
 spec:
   type: ClusterIP
   selector:
-    app: admin-app
+    app: {{ .Values.admin.name }}
   ports:
     - protocol: TCP
       port: 80

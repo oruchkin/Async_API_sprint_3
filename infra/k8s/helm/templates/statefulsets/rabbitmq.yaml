@@ -27,27 +27,17 @@ spec:
               name: rabbitmq
           volumeMounts:
             - mountPath: "/var/log/rabbitmq"
-              name: rabbitmq-log-pvc
+              name: rabbitmq-logs-volume
             - mountPath: "/var/lib/rabbitmq"
-              name: rabbitmq-lib-pvc
+              name: rabbitmq-libs-volume
+      volumes:
+        - name: rabbitmq-logs-volume
+          persistentVolumeClaim:
+            claimName: rabbitmq-logs-pvc
+        - name: rabbitmq-libs-volume
+          persistentVolumeClaim:
+            claimName: rabbitmq-libs-pvc
 
   selector:
     matchLabels:
       app: rabbitmq-app
-  volumeClaimTemplates:
-    - metadata:
-        name: rabbitmq-log-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi
-    - metadata:
-        name: rabbitmq-lib-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi

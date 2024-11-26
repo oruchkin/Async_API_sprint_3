@@ -18,18 +18,13 @@ spec:
               name: redis-cli
           volumeMounts:
             - mountPath: "/data"
-              name: redis-pvc
+              name: redis-volume
           command: ["redis-server", "--save", "20", "1", "--loglevel", "warning"]
+      volumes:
+        - name: redis-volume
+          persistentVolumeClaim:
+            claimName: redis-pvc
 
   selector:
     matchLabels:
       app: redis-app
-  volumeClaimTemplates:
-    - metadata:
-        name: redis-pvc
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 100Mi
