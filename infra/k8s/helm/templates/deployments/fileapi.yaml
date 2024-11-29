@@ -7,7 +7,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ .Values.imagesStorage }}fileapi-app
+        app: fileapi-app
       annotations:
         prometheus.io/path: /metrics
         prometheus.io/port: "8000"
