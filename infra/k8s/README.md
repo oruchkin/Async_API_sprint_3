@@ -56,7 +56,7 @@ minikube docker-env
 ```
 и внимательно читаем, что там написано!
 
-## (Mount path)[https://minikube.sigs.k8s.io/docs/handbook/mount/]
+## [Mount path](https://minikube.sigs.k8s.io/docs/handbook/mount/)
 ```bash
 minikube mount C:/path/to/local/data:/mnt/data
 ```
@@ -113,6 +113,15 @@ and to update it
 helm upgrade movies .
 ```
 
+# Ya.cloud storage
+[Volumes](https://yandex.cloud/ru/docs/managed-kubernetes/qa/volumes)
+Dynamic provisioning = [динамическая подготовка тома](https://yandex.cloud/ru/docs/managed-kubernetes/operations/volumes/dynamic-create-pv)
+Static provisioning = [статическая подготовка тома](https://yandex.cloud/ru/docs/managed-kubernetes/operations/volumes/static-create-pv)
+[Тут](https://bluexp.netapp.com/blog/cvo-blg-static-vs.-dynamic-storage-provisioning-a-look-under-the-hood) можно почитать, чем они отличаются,
+если кратко, то, если нет никаких требований, то проще и дешевле использовать dynamic provisioning. А базы в k8s лучше вообще не деплоить.
+
+Узлы должны быть минимум 8Gb
+Keycloak:23.0.5 т.к. >=24 требует https
 
 # Grafana metrics:
 1. Service Uptime
