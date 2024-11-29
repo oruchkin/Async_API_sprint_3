@@ -26,6 +26,11 @@ spec:
           volumeMounts:
             - mountPath: "/usr/share/elasticsearch/data"
               name: elasticsearch-volume
+      # https://stackoverflow.com/questions/73871100/elasticsearch-crashloopbackoff-when-deploying-with-eck-in-kubernetes-okd-4-11
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       volumes:
         - name: elasticsearch-volume
           persistentVolumeClaim:

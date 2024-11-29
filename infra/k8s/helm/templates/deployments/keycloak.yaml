@@ -40,7 +40,11 @@ spec:
           - name: KEYCLOAK_ADMIN
             value: admin
           - name: KEYCLOAK_ADMIN_PASSWORD
+            value: "$(KEYCLOAK_ADMIN_PASSWORD)"
+          - name: KC_BOOTSTRAP_ADMIN_USERNAME
             value: admin
+          - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+            value: "$(KEYCLOAK_ADMIN_PASSWORD)"
           - name: KC_DB_USERNAME
             value: "$(POSTGRES_USER)"
           - name: KC_DB_PASSWORD
@@ -48,7 +52,7 @@ spec:
           
           # Так мы указываем minikube использовать ранее собранные
           # нами локально образы без попытки скачать их из реестра образов
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
       initContainers:

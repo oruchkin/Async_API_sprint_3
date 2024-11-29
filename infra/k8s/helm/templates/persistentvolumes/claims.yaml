@@ -16,6 +16,8 @@ spec:
   resources:
     requests:
       storage: {{ $pod.size | default $def.size }}
+  {{- if $def.volumes }}
   volumeName: {{ $podName }}-pv 
+  {{- end }}
   storageClassName: {{ $def.class }}
 {{ end }}

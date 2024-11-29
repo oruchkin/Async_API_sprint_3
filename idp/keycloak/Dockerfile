@@ -1,4 +1,5 @@
-FROM quay.io/keycloak/keycloak:25.0.1
+FROM quay.io/keycloak/keycloak:23.0.5
+# FROM quay.io/keycloak/keycloak:25.0.1 requires https
 
 # Setting the build parameter for the database:
 ENV KC_DB=postgres
@@ -16,4 +17,4 @@ ENV JAVA_TOOL_OPTIONS="-Dkeycloak.profile.feature.admin_fine_grained_authz=enabl
 # To be able to use the image with the Keycloak Operator, it needs to be optimized, which requires Keycloak's build step:
 # RUN /opt/keycloak/bin/kc.sh build
 
-ENTRYPOINT [ "/opt/keycloak/bin/kc.sh", "start-dev", "--verbose" ]
+ENTRYPOINT [ "/opt/keycloak/bin/kc.sh", "start-dev" ]

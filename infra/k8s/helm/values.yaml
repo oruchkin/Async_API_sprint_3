@@ -1,7 +1,7 @@
 
 # Prefix for images storage. Keep empty for local build
 # E.g. username/ to set it as dockerhub storage
-imagesStorage: ""
+imagesStorage: "gdreyv/"
 
 envFrom:
   - configMapRef:
@@ -16,11 +16,11 @@ admin:
   debug: true
 
 storage:
-  kind: local  # or cloud
+  kind: cloud  # local or cloud
 
   pods:
     minio:
-      mode: ReadWriteMany
+      mode: ReadWriteOnce
     mongo:
       mode: ReadWriteOnce
     rabbitmq-logs:
@@ -53,12 +53,7 @@ storage:
         path: /mnt/data/redis
       postgres:
         path: /mnt/data/postgres
-      shared-123:
-        path: /mnt/data/shared-123
-        mode: ReadWriteMany
-        size: 200Mi
     
   cloud:
     size: 4Gi
     class: yc-network-hdd
-    volumeHandle: blablabla
