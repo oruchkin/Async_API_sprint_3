@@ -1,0 +1,9 @@
+fastapi==0.110.1
+pydantic==2.6.4
+pydantic-settings~=2.2.1
+elasticsearch-haystack~=1.0.1
+uvicorn==0.29.0
+uvloop==0.19.0 ; sys_platform != "win32" and implementation_name == "cpython"
+tensorflow~=2.18.0
+sentence-transformers~=3.3.1
+tf-keras~=2.18.0

@@ -83,5 +83,8 @@
     "forwardPorts": [
         8000, 50051, 8765
     ],
+    "mounts": [
+        "source=d:/Work/ya.practicum/llm,target=/var/run/llm,type=bind"
+    ],
     "postCreateCommand": "find . -name \"requirements.txt\" -type f -exec pip install -r '{}' ';'"
 }
