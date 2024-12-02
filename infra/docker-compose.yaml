@@ -69,7 +69,7 @@ services:
   elasticsearch-dev:
     <<: *elasticsearch-base
     ports: ["9200:9200"]
-    profiles: ["etl-dev", "api-dev"]
+    profiles: ["etl-dev", "api-dev", "assist-dev"]
 
   elasticsearch-clean:
     <<: *elasticsearch-base

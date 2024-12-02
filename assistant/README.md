@@ -6,3 +6,6 @@
 
 ## LLM model
 Clone the repo from the [link](https://huggingface.co/deepset/roberta-base-squad2)
+
+## Warning
+None of PyTorch, TensorFlow >= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.

@@ -7,8 +7,8 @@ class ElasticsearchSettings(BaseSettings):
 
     @property
     def host(self) -> str:
-        return self.url.split(":")[0]
+        return self.url.rsplit(":", maxsplit=1)[0]
 
     @property
     def port(self) -> int:
-        return int(self.url.split(":")[1])
+        return int(self.url.rsplit(":", maxsplit=1)[1])

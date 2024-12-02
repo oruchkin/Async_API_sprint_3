@@ -1,9 +1,22 @@
+import os
+
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from src.pipeline import pipeline
 
-from .pipeline import pipeline
-
-app = FastAPI()
+app = FastAPI(
+    title="Assistant",
+    description="Description",
+    version="1.0.0",
+    docs_url="/api/openapi",
+    openapi_url="/api/openapi.json",
+)
+try:
+    file_size = os.path.getsize("/var/run/llm/roberta-base-squad2/tf_model.h5")
+    print(file_size)
+except Exception as e:
+    print(e)
 
 
 # Define a request schema
@@ -13,10 +26,10 @@ class QueryRequest(BaseModel):
 
 @app.post("/search")
 async def search(query_request: QueryRequest):
-    query = query_request.query
+    query = {"text_embedder": {"text": query_request.query}}
     try:
         # Perform the query using Haystack
-        result = pipeline.run(query=query, params={"Retriever": {"top_k": 10}})
+        result = pipeline.run(query)
         return {
             "query": query,
             "answers": [
@@ -30,3 +43,12 @@ async def search(query_request: QueryRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
